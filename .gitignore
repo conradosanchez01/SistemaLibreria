@@ -1,0 +1,9 @@
+# Archivos compilados
+*.class
+
+# Carpetas específicas de NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
