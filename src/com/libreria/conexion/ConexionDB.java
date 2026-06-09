@@ -9,7 +9,7 @@ public class ConexionDB {
     // Configuración de la URL de conexión, usuario y contraseña 
     private static final String URL = "jdbc:mysql://localhost:3306/libreria_db"; 
     private static final String USER = "root"; 
-    private static final String PASSWORD = ""; // Sustituye por tu clave si usas una en tu MySQL local 
+    private static final String PASSWORD = ""; // Sustitui tu clave si usas una en tu MySQL local 
 
     public static Connection conectar() { 
         Connection conexion = null; 
@@ -20,6 +20,6 @@ public class ConexionDB {
         } catch (SQLException e) { 
             System.err.println("Error al conectar con la base de datos: " + e.getMessage()); 
         }
-        return conexion; // 
+        return conexion; 
     }
 }

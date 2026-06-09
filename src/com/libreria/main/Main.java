@@ -1,9 +1,15 @@
 package com.libreria.main;
 
+import com.libreria.controladores.UsuarioDAO;
 import com.libreria.vistas.VentanaPrincipal;
+import com.libreria.modelos.Usuario;
+
+
 
 public class Main {
     public static void main(String[] args) {
+        
+   
         
         // Esto hace que la ventana se abra con el estilo visual del sistema operativo
         try {
