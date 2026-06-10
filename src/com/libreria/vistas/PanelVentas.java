@@ -156,7 +156,7 @@ public class PanelVentas extends javax.swing.JPanel {
    private void cargarCombosDinamicos() {
         // --- CLIENTES ---
         cbClientes.removeAllItems();
-        com.libreria.dao.ClienteDAO cDao = new com.libreria.dao.ClienteDAO();
+        com.libreria.controladores.ClienteDAO cDao = new com.libreria.controladores.ClienteDAO();
         datosTecnicosClientes = cDao.listarClientesCombo();
         
         for (String c : datosTecnicosClientes) {
@@ -170,7 +170,7 @@ public class PanelVentas extends javax.swing.JPanel {
 
         // --- LIBROS ---
         cbLibros.removeAllItems();
-        com.libreria.dao.LibroDAO lDao = new com.libreria.dao.LibroDAO();
+        com.libreria.controladores.LibroDAO lDao = new com.libreria.controladores.LibroDAO();
         datosTecnicosLibros = lDao.listarLibrosCombo();
         
         for (String l : datosTecnicosLibros) {
@@ -274,7 +274,7 @@ public class PanelVentas extends javax.swing.JPanel {
         }
 
         try {
-            com.libreria.model.Venta nuevaVenta = new com.libreria.model.Venta(idCliente, new java.util.Date(), totalVenta);
+            com.libreria.modelos.Venta nuevaVenta = new com.libreria.modelos.Venta(idCliente, new java.util.Date(), totalVenta);
 
             for (int i = 0; i < modeloTabla.getRowCount(); i++) {
                 int idLibro = Integer.parseInt(modeloTabla.getValueAt(i, 0).toString());
@@ -283,11 +283,11 @@ public class PanelVentas extends javax.swing.JPanel {
                 String precioCelda = modeloTabla.getValueAt(i, 3).toString().replace("$", "").trim();
                 double precioUnitario = Double.parseDouble(precioCelda);
 
-                com.libreria.model.DetalleVenta detalle = new com.libreria.model.DetalleVenta(idLibro, cantidad, precioUnitario);
+                com.libreria.modelos.DetalleVenta detalle = new com.libreria.modelos.DetalleVenta(idLibro, cantidad, precioUnitario);
                 nuevaVenta.agregarDetalle(detalle);
             }
 
-            com.libreria.dao.VentaDAO ventaDAO = new com.libreria.dao.VentaDAO();
+            com.libreria.controladores.VentaDAO ventaDAO = new com.libreria.controladores.VentaDAO();
             boolean exito = ventaDAO.registrarVentaCompleta(nuevaVenta);
 
             if (exito) {
@@ -306,7 +306,7 @@ public class PanelVentas extends javax.swing.JPanel {
                 cargarCombosDinamicos(); // Refresca todo
             }
 
-        } catch (com.libreria.model.StockInsuficienteException ex) {
+        } catch (com.libreria.excepciones.StockInsuficienteException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Stock Insuficiente", JOptionPane.ERROR_MESSAGE);
         } catch (java.sql.SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error crítico en la Base de Datos:\n" + ex.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
