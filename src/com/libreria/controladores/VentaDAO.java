@@ -1,10 +1,9 @@
-package com.libreria.dao;
+package com.libreria.controladores;
 
 import com.libreria.conexion.ConexionDB;
-import com.libreria.conexion.ConexionDB;
-import com.libreria.model.Venta;
-import com.libreria.model.DetalleVenta;
-import com.libreria.model.StockInsuficienteException;
+import com.libreria.modelos.Venta;
+import com.libreria.modelos.DetalleVenta;
+import com.libreria.excepciones.StockInsuficienteException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

@@ -1,4 +1,4 @@
-package com.libreria.modelo;
+package com.libreria.modelos;
 
 public class Cliente {
 
