@@ -15,10 +15,12 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     /**
      * Creates new form VentanaPrincipal
      */
-    public VentanaPrincipal() {
+ public VentanaPrincipal() {
         initComponents();
+        
+        PanelLibros miPanelDeLibros = new PanelLibros();
+        jTabbedPane1.addTab("Gestión de Libros", miPanelDeLibros);
     }
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
