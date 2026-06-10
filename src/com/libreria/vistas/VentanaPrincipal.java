@@ -22,7 +22,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         PanelLogin panelLog = new PanelLogin();
         
         // 2. Lo agregamos al menú de pestañas con el título "Iniciar Sesión"
-        jTabbedPane1.addTab("Iniciar Sesión", panelLog);
+        panelPestañas.addTab("Iniciar Sesión", panelLog);
         
         
         
@@ -39,7 +39,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     private void initComponents() {
 
         jCheckBoxMenuItem1 = new javax.swing.JCheckBoxMenuItem();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
+        panelPestañas = new javax.swing.JTabbedPane();
         jMenuBar1 = new javax.swing.JMenuBar();
 
         jCheckBoxMenuItem1.setSelected(true);
@@ -53,13 +53,13 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 800, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(panelPestañas, javax.swing.GroupLayout.PREFERRED_SIZE, 800, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 600, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(panelPestañas, javax.swing.GroupLayout.PREFERRED_SIZE, 600, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
 
@@ -96,23 +96,23 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem1;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTabbedPane panelPestañas;
     // End of variables declaration//GEN-END:variables
 
 public void habilitarModulos(String rol) {
         // 1. Borramos la pestaña de Login para que no puedan volver atrás
-        jTabbedPane1.removeAll();
+        panelPestañas.removeAll();
 
         // 2. Agregamos las pestañas operativas comunes a TODOS (Empleados y Dueños)
         // Nota: Por ahora pongo "new javax.swing.JPanel()" como paneles vacíos de prueba. 
         // Cuando los compañeros pasen sus trabajos, acá pondremos "new PanelVentas()", etc.
-        jTabbedPane1.addTab("Punto de Venta", new javax.swing.JPanel());
-        jTabbedPane1.addTab("Gestión de Clientes", new javax.swing.JPanel());
+        panelPestañas.addTab("Punto de Venta", new javax.swing.JPanel());
+        panelPestañas.addTab("Gestión de Clientes", new javax.swing.JPanel());
 
         // 3. Control de acceso: Si es DUEÑO, le habilitamos las pestañas extra
         if (rol.equals("DUEÑO")) {
-            jTabbedPane1.addTab("Inventario de Libros", new javax.swing.JPanel());
-            jTabbedPane1.addTab("Reportes Estadísticos", new javax.swing.JPanel());
+            panelPestañas.addTab("Inventario de Libros", new javax.swing.JPanel());
+            panelPestañas.addTab("Reportes Estadísticos", new javax.swing.JPanel());
         }
     }
 
