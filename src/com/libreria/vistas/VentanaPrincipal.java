@@ -18,7 +18,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     public VentanaPrincipal() {
         initComponents();
         
-        jTabbedPane1.addTab("Módulo de Ventas", new PanelVentas());
+        
     }
 
     /**
