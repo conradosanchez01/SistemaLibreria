@@ -1,4 +1,4 @@
-package com.libreria.controladores;
+package com.libreria.dao;
 
 import com.libreria.conexion.ConexionDB;
 import com.libreria.excepciones.ClienteDuplicadoException;

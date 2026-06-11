@@ -1,4 +1,4 @@
-package com.libreria.controladores;
+package com.libreria.dao;
 
 import com.libreria.conexion.ConexionDB;
 import com.libreria.modelos.Venta;
@@ -32,10 +32,9 @@ public class VentaDAO {
                 throw new SQLException("No se pudo establecer conexión con la base de datos.");
             }
             
-            // ACTIVAMOS LA TRANSACCIÓN: No se guarda nada de forma permanente hasta confirmar que todo esté OK
             con.setAutoCommit(false);
 
-            // 1. Verificar stock disponible para cada artículo antes de tocar nada
+            // 1. Verificar stock disponible
             for (DetalleVenta detalle : venta.getDetalles()) {
                 psCheckStock = con.prepareStatement(sqlCheckStock);
                 psCheckStock.setInt(1, detalle.getIdLibro());
@@ -46,7 +45,6 @@ public class VentaDAO {
                     String tituloLibro = rs.getString("titulo");
                     
                     if (stockActual < detalle.getCantidad()) {
-                        // Lanzamos nuestra excepción personalizada si se quedan sin unidades
                         throw new StockInsuficienteException("Stock insuficiente para el libro: " 
                                 + tituloLibro + " (Disponibles: " + stockActual + ", Solicitados: " + detalle.getCantidad() + ")");
                     }
@@ -57,14 +55,13 @@ public class VentaDAO {
                 psCheckStock.close();
             }
 
-            // 2. Insertar la cabecera de la Venta (Ventas)
+            // 2. Insertar cabecera de la Venta
             psVenta = con.prepareStatement(sqlVenta, Statement.RETURN_GENERATED_KEYS);
             psVenta.setInt(1, venta.getIdCliente());
             psVenta.setTimestamp(2, new java.sql.Timestamp(venta.getFecha().getTime()));
             psVenta.setDouble(3, venta.getTotal());
             psVenta.executeUpdate();
 
-            // Obtenemos el ID auto-generado por MySQL para esta venta
             rs = psVenta.getGeneratedKeys();
             int idVentaGenerado = -1;
             if (rs.next()) {
@@ -74,30 +71,26 @@ public class VentaDAO {
             }
             rs.close();
 
-            // 3. Insertar los detalles de la venta y restar el stock correspondiente
+            // 3. Insertar detalles y restar stock
             psDetalle = con.prepareStatement(sqlDetalle);
             psUpdateStock = con.prepareStatement(sqlUpdateStock);
 
             for (DetalleVenta detalle : venta.getDetalles()) {
-                // Insertar detalle
                 psDetalle.setInt(1, idVentaGenerado);
                 psDetalle.setInt(2, detalle.getIdLibro());
                 psDetalle.setInt(3, detalle.getCantidad());
                 psDetalle.setDouble(4, detalle.getCantidad() * detalle.getPrecioUnitario());
                 psDetalle.executeUpdate();
 
-                // Restar stock
                 psUpdateStock.setInt(1, detalle.getCantidad());
                 psUpdateStock.setInt(2, detalle.getIdLibro());
                 psUpdateStock.executeUpdate();
             }
 
-            // Confirmamos los cambios en la base de datos de manera definitiva
             con.commit();
             return true;
 
         } catch (Exception ex) {
-
             if (con != null) {
                 try {
                     con.rollback();
@@ -105,10 +98,8 @@ public class VentaDAO {
                     System.err.println("Error haciendo rollback: " + rollbackEx.getMessage());
                 }
             }
-
             throw ex;
         } finally {
-            // Cerramos todos los recursos abiertos de forma segura
             try {
                 if (rs != null) rs.close();
                 if (psVenta != null) psVenta.close();

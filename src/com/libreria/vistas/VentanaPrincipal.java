@@ -18,6 +18,33 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     public VentanaPrincipal() {
         initComponents();
 
+        
+        
+        
+        
+        
+        
+        // 1. Creamos la Vista (la pantalla "tonta")
+com.libreria.vistas.PanelClientes vistaClientes = new com.libreria.vistas.PanelClientes();
+
+// 2. Creamos el DAO (la conexión a MySQL)
+com.libreria.dao.ClienteDAO daoClientes = new com.libreria.dao.ClienteDAO();
+
+// 3. Creamos el Controlador y le pasamos la Vista y el DAO para que los una
+com.libreria.controladores.ClienteControlador controladorClientes = new com.libreria.controladores.ClienteControlador(vistaClientes, daoClientes);
+
+// 4. Finalmente, agregamos la Vista (que ya está "enchufada" y funcionando) a la pestaña
+jTabbedPane1.addTab("Clientes (MVC Puro)", vistaClientes);
+        
+        
+        // Instanciación del módulo de Ventas con desacoplamiento arquitectónico
+com.libreria.vistas.PanelVentas vistaVentas = new com.libreria.vistas.PanelVentas();
+com.libreria.dao.VentaDAO daoVentas = new com.libreria.dao.VentaDAO();
+com.libreria.controladores.VentaControlador controladorVentas = new com.libreria.controladores.VentaControlador(vistaVentas, daoVentas);
+
+jTabbedPane1.addTab("Ventas (MVC Estricto)", vistaVentas);
+        
+        
     }
 
     /**
