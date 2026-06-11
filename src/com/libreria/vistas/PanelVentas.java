@@ -150,37 +150,43 @@ public class PanelVentas extends javax.swing.JPanel {
         });
     }
 
-    /**
-     Consulta a MySQL y llena los ComboBox 
+/**
+     * Consulta a MySQL y llena los ComboBox 
      */
-   private void cargarCombosDinamicos() {
-        // --- CLIENTES ---
-        cbClientes.removeAllItems();
-        com.libreria.controladores.ClienteDAO cDao = new com.libreria.controladores.ClienteDAO();
-        datosTecnicosClientes = cDao.listarClientesCombo();
-        
-        for (String c : datosTecnicosClientes) {
-            String[] partes = c.split("::");
-            if (partes.length > 1) {
-                cbClientes.addItem(partes[1]); // Muestra: Juan Pérez
-            } else {
-                cbClientes.addItem(partes[0]); // Muestra: --- Seleccione ---
+    private void cargarCombosDinamicos() {
+        try {
+            // --- CLIENTES ---
+            cbClientes.removeAllItems();
+            com.libreria.controladores.ClienteDAO cDao = new com.libreria.controladores.ClienteDAO();
+            datosTecnicosClientes = cDao.listarClientesCombo();
+            
+            for (String c : datosTecnicosClientes) {
+                String[] partes = c.split("::");
+                if (partes.length > 1) {
+                    cbClientes.addItem(partes[1]); // Muestra: Juan Pérez
+                } else {
+                    cbClientes.addItem(partes[0]); // Muestra: --- Seleccione ---
+                }
             }
-        }
 
-        // --- LIBROS ---
-        cbLibros.removeAllItems();
-        com.libreria.controladores.LibroDAO lDao = new com.libreria.controladores.LibroDAO();
-        datosTecnicosLibros = lDao.listarLibrosCombo();
-        
-        for (String l : datosTecnicosLibros) {
-            String[] partes = l.split("::");
-            if (partes[0].equals("0")) {
-                cbLibros.addItem(partes[1]); // Muestra: --- Seleccione un Libro ---
-            } else {
-                // Muestra: Don Quijote de la Mancha ($1500.0)
-                cbLibros.addItem(partes[1] + " ($" + partes[2] + ")");
+            // --- LIBROS ---
+            cbLibros.removeAllItems();
+            com.libreria.controladores.LibroDAO lDao = new com.libreria.controladores.LibroDAO();
+            datosTecnicosLibros = lDao.listarLibrosCombo();
+            
+            for (String l : datosTecnicosLibros) {
+                String[] partes = l.split("::");
+                if (partes[0].equals("0")) {
+                    cbLibros.addItem(partes[1]); // Muestra: --- Seleccione un Libro ---
+                } else {
+                    // Muestra: Don Quijote de la Mancha ($1500.0)
+                    cbLibros.addItem(partes[1] + " ($" + partes[2] + ")");
+                }
             }
+        } catch (java.sql.SQLException ex) {
+            javax.swing.JOptionPane.showMessageDialog(this, 
+                "Error al cargar las listas desplegables desde la base de datos:\n" + ex.getMessage(), 
+                "Error de Conexión", javax.swing.JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -188,7 +194,6 @@ public class PanelVentas extends javax.swing.JPanel {
      * Captura los datos de la interfaz e introduce la línea al carrito temporal.
      */
     private void ejecutarAgregarProducto() {
-        // Obtenemos el índice seleccionado por el usuario en la interfaz
         int indexCliente = cbClientes.getSelectedIndex();
         int indexLibro = cbLibros.getSelectedIndex();
 
@@ -203,7 +208,6 @@ public class PanelVentas extends javax.swing.JPanel {
         }
 
         try {
-            // Validamos que la cantidad sea un número válido
             int cantidad = Integer.parseInt(txtCantidad.getText().trim());
             if (cantidad <= 0) {
                 throw new NumberFormatException();
@@ -218,24 +222,52 @@ public class PanelVentas extends javax.swing.JPanel {
             double precio = Double.parseDouble(partesLibro[2]);
             int stockDisponible = Integer.parseInt(partesLibro[3]);
 
-            // 3. Validación de Stock
-            if (cantidad > stockDisponible) {
+            // Verificar si YA existe el producto en el carrito
+            int cantidadPrevia = 0;
+            int filaExistente = -1;
+            
+            for (int i = 0; i < modeloTabla.getRowCount(); i++) {
+                if (Integer.parseInt(modeloTabla.getValueAt(i, 0).toString()) == idLibro) {
+                    cantidadPrevia = Integer.parseInt(modeloTabla.getValueAt(i, 2).toString());
+                    filaExistente = i;
+                    break;
+                }
+            }
+
+            int cantidadTotalDeseada = cantidadPrevia + cantidad;
+
+            // 3. Validación de Stock Total
+            if (cantidadTotalDeseada > stockDisponible) {
                 JOptionPane.showMessageDialog(this, 
-                    "Stock insuficiente. Solo quedan " + stockDisponible + " unidades de '" + titulo + "'.", 
+                    "Stock insuficiente. Ya tenés " + cantidadPrevia + " en el carrito y el stock máximo es de " + stockDisponible + " unidades.", 
                     "Sin Stock", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+
+            // 4. Actualizar Fila o Agregar Nueva
+            if (filaExistente != -1) {
+                double nuevoSubtotal = precio * cantidadTotalDeseada;
+                modeloTabla.setValueAt(cantidadTotalDeseada, filaExistente, 2);
+                modeloTabla.setValueAt("$" + nuevoSubtotal, filaExistente, 4);
+            } else {
+                double subtotal = precio * cantidad;
+                modeloTabla.addRow(new Object[]{idLibro, titulo, cantidad, "$" + precio, "$" + subtotal});
+            }
+
+            // 5. Recalcular el Total General
+            totalVenta = 0.0;
+            for (int i = 0; i < modeloTabla.getRowCount(); i++) {
+                String subtotalCelda = modeloTabla.getValueAt(i, 4).toString().replace("$", "").trim();
+                totalVenta += Double.parseDouble(subtotalCelda);
+            }
             
-            double subtotal = precio * cantidad;
-
-            // 4. Agregamos al modelo de la tabla
-            modeloTabla.addRow(new Object[]{idLibro, titulo, cantidad, "$" + precio, "$" + subtotal});
-
-            // 5. Actualizamos el total
-            totalVenta += subtotal;
             lblTotal.setText("TOTAL A PAGAR: $" + String.format("%.2f", totalVenta));
-            
             txtCantidad.setText("1");
+
+            // =======================================================
+            // MEJORA SEGURIDAD: Bloquear ComboBox de clientes
+            // =======================================================
+            cbClientes.setEnabled(false);
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "La cantidad debe ser un número entero mayor a cero.", "Error de Dato", JOptionPane.ERROR_MESSAGE);
@@ -252,19 +284,16 @@ public class PanelVentas extends javax.swing.JPanel {
             return;
         }
 
-        // Obtenemos el ID real usando la lista oculta técnica
         int indexCliente = cbClientes.getSelectedIndex();
         if (indexCliente <= 0) { 
             JOptionPane.showMessageDialog(this, "Debe seleccionar un cliente válido.", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        // Obtenemos el String y extraemos el ID
         String clienteTecnico = datosTecnicosClientes.get(indexCliente);
         int idCliente = Integer.parseInt(clienteTecnico.split("::")[0]);
-        String nombreCliente = clienteTecnico.split("::")[1]; // Ya tenemos el nombre para el PDF
+        String nombreCliente = clienteTecnico.split("::")[1];
 
-        // Preguntar confirmación al usuario
         int confirmacion = JOptionPane.showConfirmDialog(this, 
                 "¿Confirmar la venta por un total de $" + String.format("%.2f", totalVenta) + "?", 
                 "Confirmar Operación", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
@@ -295,15 +324,19 @@ public class PanelVentas extends javax.swing.JPanel {
                         "¡Venta registrada y facturada con éxito en MySQL!\nEl stock ha sido actualizado.", 
                         "Éxito", JOptionPane.INFORMATION_MESSAGE);
 
-                // Generamos el PDF usando el nombre que sacamos de la lista técnica
                 generarFacturaPDF(nombreCliente, totalVenta);
                 
-                // Limpiar por completo la interfaz
+                // Limpiar la interfaz
                 modeloTabla.setRowCount(0);
                 totalVenta = 0.0;
                 lblTotal.setText("TOTAL A PAGAR: $0.00");
                 txtCantidad.setText("1");
-                cargarCombosDinamicos(); // Refresca todo
+                
+                // =======================================================
+                // MEJORA SEGURIDAD: Desbloquear combo y recargar
+                // =======================================================
+                cbClientes.setEnabled(true);
+                cargarCombosDinamicos(); 
             }
 
         } catch (com.libreria.excepciones.StockInsuficienteException ex) {
@@ -311,10 +344,12 @@ public class PanelVentas extends javax.swing.JPanel {
         } catch (java.sql.SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error crítico en la Base de Datos:\n" + ex.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
-            // Esto captura cualquier error inesperado, como el NumberFormatException anterior
             JOptionPane.showMessageDialog(this, "Ocurrió un error al procesar la factura: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+    
+    
+    
 /**
      * Genera el comprobante en PDF leyendo los datos de la tabla visual
      */
