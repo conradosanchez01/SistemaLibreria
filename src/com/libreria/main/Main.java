@@ -23,6 +23,7 @@ public class Main {
                 VentanaPrincipal ventana = new VentanaPrincipal();
                 // Hace que la ventana aparezca en el centro de la pantalla
                 ventana.setLocationRelativeTo(null); 
+               
                 ventana.setVisible(true);
             }
         });

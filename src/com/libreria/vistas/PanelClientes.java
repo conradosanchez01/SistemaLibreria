@@ -1,12 +1,13 @@
 package com.libreria.vistas;
 
-import com.libreria.dao.ClienteDAO;
-import com.libreria.modelo.Cliente;
+import com.libreria.controladores.ClienteDAO; 
+import com.libreria.modelos.Cliente;       
 import com.libreria.excepciones.ClienteDuplicadoException;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.sql.SQLException; // ataja los errores de BD
 import java.util.List;
 
 public class PanelClientes extends JPanel {
@@ -50,21 +51,12 @@ public class PanelClientes extends JPanel {
         add(panelFormulario, BorderLayout.NORTH);
 
         String[] columnas = {
-                "ID",
-                "Nombre",
-                "Apellido",
-                "DNI",
-                "Email"
+                "ID", "Nombre", "Apellido", "DNI", "Email"
         };
 
-        DefaultTableModel modelo =
-                new DefaultTableModel(columnas, 0);
-
+        DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
         tablaClientes = new JTable(modelo);
-
-        JScrollPane scroll =
-                new JScrollPane(tablaClientes);
-
+        JScrollPane scroll = new JScrollPane(tablaClientes);
         add(scroll, BorderLayout.CENTER);
 
         JPanel panelBotones = new JPanel();
@@ -96,183 +88,132 @@ public class PanelClientes extends JPanel {
     }
 
     private void cargarClientes() {
+        try {
+            ClienteDAO dao = new ClienteDAO();
+            List<Cliente> clientes = dao.consultarTodos();
 
-        ClienteDAO dao = new ClienteDAO();
+            DefaultTableModel modelo = (DefaultTableModel) tablaClientes.getModel();
+            modelo.setRowCount(0);
 
-        List<Cliente> clientes = dao.consultarTodos();
-
-        DefaultTableModel modelo =
-                (DefaultTableModel) tablaClientes.getModel();
-
-        modelo.setRowCount(0);
-
-        for (Cliente c : clientes) {
-
-            modelo.addRow(new Object[]{
-                    c.getIdCliente(),
-                    c.getNombre(),
-                    c.getApellido(),
-                    c.getDni(),
-                    c.getEmail()
-            });
+            for (Cliente c : clientes) {
+                modelo.addRow(new Object[]{
+                        c.getIdCliente(),
+                        c.getNombre(),
+                        c.getApellido(),
+                        c.getDni(),
+                        c.getEmail()
+                });
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la lista de clientes:\n" + e.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void guardarCliente() {
+        if(txtNombre.getText().trim().isEmpty()){
+            JOptionPane.showMessageDialog(this, "El nombre es obligatorio");
+            return;
+        }
+        if(txtApellido.getText().trim().isEmpty()){
+            JOptionPane.showMessageDialog(this, "El apellido es obligatorio");
+            return;
+        }
+        if(!txtDni.getText().matches("\\d{7,8}")){
+            JOptionPane.showMessageDialog(this, "El DNI debe tener 7 u 8 números");
+            return;
+        }
 
-    if(txtNombre.getText().trim().isEmpty()){
+        try {
+            Cliente cliente = new Cliente();
+            cliente.setNombre(txtNombre.getText());
+            cliente.setApellido(txtApellido.getText());
+            cliente.setDni(txtDni.getText());
+            cliente.setEmail(txtEmail.getText());
 
-        JOptionPane.showMessageDialog(
-                this,
-                "El nombre es obligatorio"
-        );
+            ClienteDAO dao = new ClienteDAO();
+            dao.insertar(cliente);
 
-        return;
+            JOptionPane.showMessageDialog(this, "Cliente guardado correctamente");
+            cargarClientes();
+            limpiarCampos();
+
+        } catch (ClienteDuplicadoException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Dato Duplicado", JOptionPane.WARNING_MESSAGE);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error crítico al guardar en la BD:\n" + e.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
+        }
     }
-
-    if(txtApellido.getText().trim().isEmpty()){
-
-        JOptionPane.showMessageDialog(
-                this,
-                "El apellido es obligatorio"
-        );
-
-        return;
-    }
-
-    if(!txtDni.getText().matches("\\d{7,8}")){
-
-        JOptionPane.showMessageDialog(
-                this,
-                "El DNI debe tener 7 u 8 numeros"
-        );
-
-        return;
-    }
-
-    try {
-
-        Cliente cliente = new Cliente();
-
-        cliente.setNombre(txtNombre.getText());
-        cliente.setApellido(txtApellido.getText());
-        cliente.setDni(txtDni.getText());
-        cliente.setEmail(txtEmail.getText());
-
-        ClienteDAO dao = new ClienteDAO();
-
-        dao.insertar(cliente);
-
-        JOptionPane.showMessageDialog(
-                this,
-                "Cliente guardado correctamente"
-        );
-
-        cargarClientes();
-        limpiarCampos();
-
-    } catch (ClienteDuplicadoException e) {
-
-        JOptionPane.showMessageDialog(
-                this,
-                e.getMessage()
-        );
-    }
-}
 
     private void seleccionarCliente() {
-
         int fila = tablaClientes.getSelectedRow();
-
         if (fila == -1) {
             return;
         }
 
-        idClienteSeleccionado =
-                (int) tablaClientes.getValueAt(fila, 0);
-
-        txtNombre.setText(
-                tablaClientes.getValueAt(fila, 1).toString()
-        );
-
-        txtApellido.setText(
-                tablaClientes.getValueAt(fila, 2).toString()
-        );
-
-        txtDni.setText(
-                tablaClientes.getValueAt(fila, 3).toString()
-        );
-
-        txtEmail.setText(
-                tablaClientes.getValueAt(fila, 4).toString()
-        );
+        idClienteSeleccionado = (int) tablaClientes.getValueAt(fila, 0);
+        txtNombre.setText(tablaClientes.getValueAt(fila, 1).toString());
+        txtApellido.setText(tablaClientes.getValueAt(fila, 2).toString());
+        txtDni.setText(tablaClientes.getValueAt(fila, 3).toString());
+        txtEmail.setText(tablaClientes.getValueAt(fila, 4).toString());
     }
 
     private void modificarCliente() {
-
         if (idClienteSeleccionado == -1) {
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Seleccione un cliente"
-            );
-
+            JOptionPane.showMessageDialog(this, "Seleccione un cliente de la tabla");
             return;
         }
 
-        Cliente cliente = new Cliente();
+        try {
+            Cliente cliente = new Cliente();
+            cliente.setIdCliente(idClienteSeleccionado);
+            cliente.setNombre(txtNombre.getText());
+            cliente.setApellido(txtApellido.getText());
+            cliente.setDni(txtDni.getText());
+            cliente.setEmail(txtEmail.getText());
 
-        cliente.setIdCliente(idClienteSeleccionado);
-        cliente.setNombre(txtNombre.getText());
-        cliente.setApellido(txtApellido.getText());
-        cliente.setDni(txtDni.getText());
-        cliente.setEmail(txtEmail.getText());
+            ClienteDAO dao = new ClienteDAO();
+            dao.modificar(cliente);
 
-        ClienteDAO dao = new ClienteDAO();
+            JOptionPane.showMessageDialog(this, "Cliente modificado correctamente");
+            cargarClientes();
+            limpiarCampos();
 
-        dao.modificar(cliente);
-
-        JOptionPane.showMessageDialog(
-                this,
-                "Cliente modificado correctamente"
-        );
-
-        cargarClientes();
-        limpiarCampos();
+        } catch (ClienteDuplicadoException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Dato Duplicado", JOptionPane.WARNING_MESSAGE);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error crítico al modificar en la BD:\n" + e.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void eliminarCliente() {
-
         if (idClienteSeleccionado == -1) {
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Seleccione un cliente"
-            );
-
+            JOptionPane.showMessageDialog(this, "Seleccione un cliente de la tabla");
             return;
         }
 
-        ClienteDAO dao = new ClienteDAO();
+        int confirmacion = JOptionPane.showConfirmDialog(this, "¿Seguro que desea eliminar este cliente?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (confirmacion != JOptionPane.YES_OPTION) {
+            return;
+        }
 
-        dao.eliminar(idClienteSeleccionado);
+        try {
+            ClienteDAO dao = new ClienteDAO();
+            dao.eliminar(idClienteSeleccionado);
 
-        JOptionPane.showMessageDialog(
-                this,
-                "Cliente eliminado correctamente"
-        );
-
-        cargarClientes();
-        limpiarCampos();
+            JOptionPane.showMessageDialog(this, "Cliente eliminado correctamente");
+            cargarClientes();
+            limpiarCampos();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al eliminar en la BD:\n" + e.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void limpiarCampos() {
-
         txtNombre.setText("");
         txtApellido.setText("");
         txtDni.setText("");
         txtEmail.setText("");
-
         idClienteSeleccionado = -1;
+        tablaClientes.clearSelection(); 
     }
 }
