@@ -10,6 +10,8 @@ public class PanelClientes extends JPanel {
     private JTextField txtApellido;
     private JTextField txtDni;
     private JTextField txtEmail;
+    private JTextField txtBuscar;
+    
 
     private JButton btnGuardar;
     private JButton btnModificar;
@@ -42,18 +44,28 @@ public class PanelClientes extends JPanel {
 
         add(panelFormulario, BorderLayout.NORTH);
 
-        // --- PANEL CENTRAL (Tabla) ---
+// --- PANEL CENTRAL (Buscador + Tabla) ---
+        JPanel panelBusqueda = new JPanel(new BorderLayout(5, 5));
+        panelBusqueda.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
+        panelBusqueda.add(new JLabel("Buscar Cliente (DNI, Nombre o Apellido): "), BorderLayout.WEST);
+        txtBuscar = new JTextField();
+        panelBusqueda.add(txtBuscar, BorderLayout.CENTER);
+
+        JPanel panelCentro = new JPanel(new BorderLayout());
+        panelCentro.add(panelBusqueda, BorderLayout.NORTH);
+
         String[] columnas = {"ID", "Nombre", "Apellido", "DNI", "Email"};
         modelo = new DefaultTableModel(columnas, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; // Bloquea la edición directa de celdas
-            }
+            public boolean isCellEditable(int row, int column) { return false; }
         };
         tablaClientes = new JTable(modelo);
         JScrollPane scroll = new JScrollPane(tablaClientes);
-        add(scroll, BorderLayout.CENTER);
+        
+        panelCentro.add(scroll, BorderLayout.CENTER);
+        add(panelCentro, BorderLayout.CENTER);
 
+        
         // --- PANEL INFERIOR (Botones) ---
         JPanel panelBotones = new JPanel();
         btnGuardar = new JButton("Guardar");
@@ -84,4 +96,10 @@ public class PanelClientes extends JPanel {
     
     public JTable getTablaClientes() { return tablaClientes; }
     public DefaultTableModel getModelo() { return modelo; }
+    
+    public JTextField getTxtBuscar() { return txtBuscar; }
+    
+    
+    
+    
 }

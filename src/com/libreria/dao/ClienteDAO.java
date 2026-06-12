@@ -145,6 +145,32 @@ public class ClienteDAO {
     
     
     
-    
+    // Método para el buscador en tiempo real
+    public List<Cliente> buscarClientes(String criterio) throws SQLException {
+        List<Cliente> lista = new ArrayList<>();
+        String sql = "SELECT * FROM clientes WHERE dni LIKE ? OR nombre LIKE ? OR apellido LIKE ?";
+
+        try (Connection con = ConexionDB.conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            String parametro = "%" + criterio + "%";
+            ps.setString(1, parametro);
+            ps.setString(2, parametro);
+            ps.setString(3, parametro);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Cliente c = new Cliente();
+                    c.setIdCliente(rs.getInt("id_cliente"));
+                    c.setNombre(rs.getString("nombre"));
+                    c.setApellido(rs.getString("apellido"));
+                    c.setDni(rs.getString("dni"));
+                    c.setEmail(rs.getString("email"));
+                    lista.add(c);
+                }
+            }
+        }
+        return lista;
+    }
     
 }

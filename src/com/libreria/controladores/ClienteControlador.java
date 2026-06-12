@@ -37,7 +37,13 @@ public class ClienteControlador implements ActionListener {
                 seleccionarCliente();
             }
         });
-
+            //Enchufamos teclado
+            this.vista.getTxtBuscar().addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                filtrarClientes();
+            }
+        });
         // Cargamos la tabla al iniciar
         cargarClientes();
     }
@@ -176,4 +182,33 @@ public class ClienteControlador implements ActionListener {
         }
         return true;
     }
+    
+    
+    private void filtrarClientes() {
+        String texto = vista.getTxtBuscar().getText().trim();
+        
+        if (texto.isEmpty()) {
+            cargarClientes(); // Si está vacío, carga todos
+            return;
+        }
+
+        try {
+            List<Cliente> filtrados = dao.buscarClientes(texto);
+            DefaultTableModel modelo = vista.getModelo();
+            modelo.setRowCount(0);
+
+            for (Cliente c : filtrados) {
+                modelo.addRow(new Object[]{
+                        c.getIdCliente(), c.getNombre(), c.getApellido(), c.getDni(), c.getEmail()
+                });
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(vista, "Error al buscar cliente:\n" + ex.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    
+    
+    
+    
 }
