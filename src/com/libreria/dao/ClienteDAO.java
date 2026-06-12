@@ -119,4 +119,32 @@ public class ClienteDAO {
         }
         return lista;
     }
+    
+    
+    public List<String> buscarClientesCombo(String criterio) throws SQLException {
+        List<String> lista = new ArrayList<>();
+        lista.add("0::--- Seleccione Cliente ---");
+        
+        String sql = "SELECT id_cliente, nombre, apellido FROM clientes WHERE dni LIKE ? OR apellido LIKE ? ORDER BY apellido, nombre";
+
+        try (Connection con = ConexionDB.conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, "%" + criterio + "%");
+            ps.setString(2, "%" + criterio + "%");
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(rs.getInt("id_cliente") + "::" + rs.getString("nombre") + " " + rs.getString("apellido"));
+                }
+            }
+        }
+        return lista;
+    }
+    
+    
+    
+    
+    
+    
 }

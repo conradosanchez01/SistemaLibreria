@@ -45,6 +45,19 @@ com.libreria.controladores.VentaControlador controladorVentas = new com.libreria
 jTabbedPane1.addTab("Ventas (MVC Estricto)", vistaVentas);
         
         
+
+// Instanciación del módulo de Gestión de Libros
+com.libreria.vistas.PanelLibros vistaLibros = new com.libreria.vistas.PanelLibros();
+com.libreria.dao.LibroDAO daoLibros = new com.libreria.dao.LibroDAO();
+com.libreria.controladores.LibroControlador controladorLibros = new com.libreria.controladores.LibroControlador(vistaLibros, daoLibros);
+
+jTabbedPane1.addTab("Libros (MVC Estricto)", vistaLibros);
+
+
+
+
+
+
     }
 
     /**

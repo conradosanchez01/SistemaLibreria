@@ -2,6 +2,7 @@ package com.libreria.controladores;
 
 import com.libreria.dao.VentaDAO;
 import com.libreria.dao.ClienteDAO;
+import com.libreria.dao.LibroDAO;
 import com.libreria.modelos.Venta;
 import com.libreria.modelos.DetalleVenta;
 import com.libreria.vistas.PanelVentas;
