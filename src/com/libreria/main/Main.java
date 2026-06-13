@@ -2,7 +2,7 @@
 
 package com.libreria.main;
 
-import com.libreria.controladores.UsuarioDAO;
+import com.libreria.dao.UsuarioDAO;
 import com.libreria.vistas.VentanaPrincipal;
 import com.libreria.modelos.Usuario;
 
