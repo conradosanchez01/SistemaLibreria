@@ -6,6 +6,7 @@ import com.libreria.dao.LibroDAO;
 import com.libreria.controladores.ClienteControlador;
 import com.libreria.controladores.VentaControlador;
 import com.libreria.controladores.LibroControlador;
+import javax.swing.JOptionPane;
 
 public class VentanaPrincipal extends javax.swing.JFrame {
 
@@ -14,21 +15,53 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     public VentanaPrincipal() {
         initComponents();
         
-        // Configuraciones dinámicas de la ventana (de main)
-        this.setLocationRelativeTo(null);
-        this.setMinimumSize(new java.awt.Dimension(1000, 700));
+       // Configuraciones dinámicas de la ventana (de main)
+       this.setTitle("Sistema de Gestión - Librería");
+        this.setSize(1000, 700); // 1. Primero le damos el tamaño real
+        this.setMinimumSize(new java.awt.Dimension(1000, 700)); // 2. Bloqueamos para que no la achiquen
+        this.setLocationRelativeTo(null); // 3. AHORA SÍ, centramos la caja gigante
 
-        // 1. Al arrancar, SOLO cargamos la pestaña de Login (de feature-login)
+        // 1. Al arrancar, llamamos al método que construye el Login
+        cargarPantallaLogin();
+    }
+
+    // Extraje esta lógica a un método para reutilizarla al cerrar sesión
+    private void cargarPantallaLogin() {
+        // Limpiamos todo rastro de la sesión anterior
+        jTabbedPane1.removeAll();
+        this.setJMenuBar(null); // Ocultamos la barra superior si estaba visible
+        
+        // Refrescamos la ventana para que aplique los cambios
+        this.revalidate();
+        this.repaint();
+
+        // Creamos y acoplamos el módulo de Login MVC
         PanelLogin panelLog = new PanelLogin();
+        com.libreria.dao.UsuarioDAO daoUsuario = new com.libreria.dao.UsuarioDAO();
+        new com.libreria.controladores.UsuarioControlador(panelLog, daoUsuario);
+        
         jTabbedPane1.addTab("Iniciar Sesión", panelLog);
     }
 
-   // Método invocado desde el PanelLogin al acertar la contraseña
+    // Método invocado desde el Controlador al acertar la contraseña
     public void habilitarModulos(String rol) {
         // 1. Borramos la pestaña de Login
         jTabbedPane1.removeAll();
 
-        // 2. Módulos base para TODOS (Empleados y Dueños)
+        // --- 2. CREACIÓN DEL MENÚ SUPERIOR PARA CERRAR SESIÓN ---
+        javax.swing.JMenuBar menuBar = new javax.swing.JMenuBar();
+        javax.swing.JMenu menuSistema = new javax.swing.JMenu("Sistema");
+        javax.swing.JMenuItem itemCerrarSesion = new javax.swing.JMenuItem("Cerrar Sesión");
+        
+        // Le asignamos la acción al botón
+        itemCerrarSesion.addActionListener(e -> cerrarSesion());
+        
+        menuSistema.add(itemCerrarSesion);
+        menuBar.add(menuSistema);
+        this.setJMenuBar(menuBar); // Hacemos visible la barra
+        // ---------------------------------------------------------
+
+        // 3. Módulos base para TODOS (Empleados y Dueños)
         
         // Módulo Ventas
         PanelVentas vistaVentas = new PanelVentas();
@@ -46,7 +79,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         de la pantalla gracias al addactionlistener(this)  */
         jTabbedPane1.addTab("Gestión de Clientes", vistaClientes);
 
-        // Módulo Libros (Ahora los vendedores también pueden gestionar el inventario)
+        // Módulo Libros
         PanelLibros vistaLibros = new PanelLibros();
         LibroDAO daoLibros = new LibroDAO();
         new LibroControlador(vistaLibros, daoLibros);
@@ -54,11 +87,23 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         de la pantalla gracias al addactionlistener(this)  */
         jTabbedPane1.addTab("Inventario de Libros", vistaLibros);
 
-        // 3. Control de acceso estricto (Próximamente)
+        // 4. Control de acceso estricto
         if (rol.equals("DUEÑO")) {
-            // Acá en el futuro inyectaremos:
-            // PanelReportes vistaReportes = new PanelReportes();
-            // jTabbedPane1.addTab("Reportes Estadísticos", vistaReportes);
+            // Futuros módulos
+        }
+    }
+
+    // Lógica para interceptar el botón de Cerrar Sesión
+    private void cerrarSesion() {
+        int confirmacion = JOptionPane.showConfirmDialog(this, 
+                "¿Está seguro que desea cerrar la sesión actual?", 
+                "Cerrar Sesión", 
+                JOptionPane.YES_NO_OPTION, 
+                JOptionPane.QUESTION_MESSAGE);
+        
+        // Si dice que sí, destruimos la sesión devolviéndolo a la pantalla de origen
+        if (confirmacion == JOptionPane.YES_OPTION) {
+            cargarPantallaLogin();
         }
     }
 
