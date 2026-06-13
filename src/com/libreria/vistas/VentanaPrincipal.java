@@ -23,28 +23,42 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jTabbedPane1.addTab("Iniciar Sesión", panelLog);
     }
 
-    // Método invocado desde el PanelLogin al acertar la contraseña
+   // Método invocado desde el PanelLogin al acertar la contraseña
     public void habilitarModulos(String rol) {
         // 1. Borramos la pestaña de Login
         jTabbedPane1.removeAll();
 
-        // 2. Módulos base para TODOS (Cargamos las vistas y controladores reales)
+        // 2. Módulos base para TODOS (Empleados y Dueños)
+        
+        // Módulo Ventas
         PanelVentas vistaVentas = new PanelVentas();
         VentaDAO daoVentas = new VentaDAO();
-        new VentaControlador(vistaVentas, daoVentas);
+        new VentaControlador(vistaVentas, daoVentas); 
+        /* falso positivo, el controlador se queda agarrado a los botones 
+        de la pantalla gracias al addactionlistener(this)  */
         jTabbedPane1.addTab("Punto de Venta", vistaVentas);
 
+        // Módulo Clientes
         PanelClientes vistaClientes = new PanelClientes();
         ClienteDAO daoClientes = new ClienteDAO();
         new ClienteControlador(vistaClientes, daoClientes);
+        /* falso positivo, el controlador se queda agarrado a los botones 
+        de la pantalla gracias al addactionlistener(this)  */
         jTabbedPane1.addTab("Gestión de Clientes", vistaClientes);
 
-        // 3. Control de acceso estricto: Solo DUEÑO ve el inventario
+        // Módulo Libros (Ahora los vendedores también pueden gestionar el inventario)
+        PanelLibros vistaLibros = new PanelLibros();
+        LibroDAO daoLibros = new LibroDAO();
+        new LibroControlador(vistaLibros, daoLibros);
+        /* falso positivo, el controlador se queda agarrado a los botones 
+        de la pantalla gracias al addactionlistener(this)  */
+        jTabbedPane1.addTab("Inventario de Libros", vistaLibros);
+
+        // 3. Control de acceso estricto (Próximamente)
         if (rol.equals("DUEÑO")) {
-            PanelLibros vistaLibros = new PanelLibros();
-            LibroDAO daoLibros = new LibroDAO();
-            new LibroControlador(vistaLibros, daoLibros);
-            jTabbedPane1.addTab("Inventario de Libros", vistaLibros);
+            // Acá en el futuro inyectaremos:
+            // PanelReportes vistaReportes = new PanelReportes();
+            // jTabbedPane1.addTab("Reportes Estadísticos", vistaReportes);
         }
     }
 
