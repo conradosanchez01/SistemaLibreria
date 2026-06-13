@@ -47,7 +47,7 @@ public class PanelClientes extends JPanel {
 // --- PANEL CENTRAL (Buscador + Tabla) ---
         JPanel panelBusqueda = new JPanel(new BorderLayout(5, 5));
         panelBusqueda.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
-        panelBusqueda.add(new JLabel("Buscar Cliente (DNI, Nombre o Apellido): "), BorderLayout.WEST);
+        panelBusqueda.add(new JLabel("Buscar Cliente por (DNI/ Nombre/ Apellido): "), BorderLayout.WEST);
         txtBuscar = new JTextField();
         panelBusqueda.add(txtBuscar, BorderLayout.CENTER);
 

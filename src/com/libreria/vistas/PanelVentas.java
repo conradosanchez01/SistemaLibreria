@@ -6,15 +6,23 @@ import java.awt.*;
 
 public class PanelVentas extends javax.swing.JPanel {
 
-    private JComboBox<String> cbClientes;
-    private JComboBox<String> cbLibros;
+    private JTextField txtBuscarCliente;
+    private JButton btnBuscarCliente;
+    private JLabel lblClienteSeleccionado;
+
+    private JTextField txtBuscarLibro;
+    private JButton btnBuscarLibro;
+    private JLabel lblLibroSeleccionado;
+
     private JTextField txtCantidad;
     private JButton btnAgregar;
     private JTable tablaCarrito;
     private DefaultTableModel modeloTabla;
     private JLabel lblTotal;
     private JButton btnFacturar;
-
+    private JButton btnVaciarCarrito;
+    
+    
     public PanelVentas() {
         initComponentsManual();
     }
@@ -23,27 +31,52 @@ public class PanelVentas extends javax.swing.JPanel {
         this.setLayout(new BorderLayout(10, 10));
         this.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // Formulario de Carga
+        // ==========================================
+        // 1. PANEL SUPERIOR: Formulario de Búsqueda
+        // ==========================================
         JPanel panelSuperior = new JPanel(new GridBagLayout());
-        panelSuperior.setBorder(BorderFactory.createTitledBorder("Registrar Ítem de Venta"));
+        panelSuperior.setBorder(BorderFactory.createTitledBorder("Búsqueda y Selección de Ítems"));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(6, 6, 6, 6);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        // Fila 0: Buscador de Clientes
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.0;
-        panelSuperior.add(new JLabel("Cliente:"), gbc);
+        panelSuperior.add(new JLabel("Buscar Cliente (DNI/Apellido/Nombre):"), gbc);
 
         gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 1.0;
-        cbClientes = new JComboBox<>(); 
-        panelSuperior.add(cbClientes, gbc);
+        txtBuscarCliente = new JTextField();
+        panelSuperior.add(txtBuscarCliente, gbc);
 
+        gbc.gridx = 2; gbc.gridy = 0; gbc.weightx = 0.0;
+        btnBuscarCliente = new JButton("Buscar");
+        panelSuperior.add(btnBuscarCliente, gbc);
+
+        gbc.gridx = 3; gbc.gridy = 0; gbc.weightx = 1.0;
+        lblClienteSeleccionado = new JLabel("Cliente: --- Ninguno Seleccionado ---");
+        lblClienteSeleccionado.setFont(new Font("Arial", Font.BOLD, 12));
+        lblClienteSeleccionado.setForeground(new Color(150, 0, 0));
+        panelSuperior.add(lblClienteSeleccionado, gbc);
+
+        // Fila 1: Buscador de Libros
         gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.0;
-        panelSuperior.add(new JLabel("Libro / Producto:"), gbc);
+        panelSuperior.add(new JLabel("Buscar Libro (ISBN/Título/Autor):"), gbc);
 
         gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 1.0;
-        cbLibros = new JComboBox<>(); 
-        panelSuperior.add(cbLibros, gbc);
+        txtBuscarLibro = new JTextField();
+        panelSuperior.add(txtBuscarLibro, gbc);
 
+        gbc.gridx = 2; gbc.gridy = 1; gbc.weightx = 0.0;
+        btnBuscarLibro = new JButton("Buscar");
+        panelSuperior.add(btnBuscarLibro, gbc);
+
+        gbc.gridx = 3; gbc.gridy = 1; gbc.weightx = 1.0;
+        lblLibroSeleccionado = new JLabel("Libro: --- Ninguno Seleccionado ---");
+        lblLibroSeleccionado.setFont(new Font("Arial", Font.BOLD, 12));
+        lblLibroSeleccionado.setForeground(new Color(150, 0, 0));
+        panelSuperior.add(lblLibroSeleccionado, gbc);
+
+        // Fila 2: Cantidad e Inserción
         JPanel panelAccionesProducto = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         panelAccionesProducto.add(new JLabel("Cantidad:"));
         
@@ -51,7 +84,7 @@ public class PanelVentas extends javax.swing.JPanel {
         txtCantidad.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 if (!Character.isDigit(evt.getKeyChar())) {
-                    evt.consume();
+                    evt.consume(); // Filtro nativo de teclado para números
                 }
             }
         });
@@ -63,28 +96,29 @@ public class PanelVentas extends javax.swing.JPanel {
         btnAgregar.setFont(new Font("Arial", Font.BOLD, 12));
         panelAccionesProducto.add(btnAgregar);
 
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 4;
         panelSuperior.add(panelAccionesProducto, gbc);
 
         this.add(panelSuperior, BorderLayout.NORTH);
 
-        // Tabla del Carrito
+        // ==========================================
+        // 2. PANEL CENTRAL: Tabla del Carrito
+        // ==========================================
         String[] columnas = {"ID Libro", "Título del Libro", "Cantidad", "Precio Unitario", "Subtotal"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; 
-            }
+            public boolean isCellEditable(int row, int column) { return false; }
         };
         
         tablaCarrito = new JTable(modeloTabla);
         tablaCarrito.setFillsViewportHeight(true);
         JScrollPane scrollTabla = new JScrollPane(tablaCarrito);
         scrollTabla.setBorder(BorderFactory.createTitledBorder("Artículos en el Carrito Actual"));
-        
         this.add(scrollTabla, BorderLayout.CENTER);
 
-        // Totales y Confirmación
+       // ==========================================
+        // 3. PANEL INFERIOR: Totales y Confirmación
+        // ==========================================
         JPanel panelInferior = new JPanel(new BorderLayout());
         panelInferior.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 5));
 
@@ -93,24 +127,45 @@ public class PanelVentas extends javax.swing.JPanel {
         lblTotal.setForeground(new Color(40, 40, 40));
         panelInferior.add(lblTotal, BorderLayout.WEST);
 
+        // Agrupamos los dos botones a la derecha
+        JPanel panelBotonesInferior = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        
+        btnVaciarCarrito = new JButton("Vaciar Carrito");
+        btnVaciarCarrito.setFont(new Font("Arial", Font.BOLD, 14));
+        btnVaciarCarrito.setBackground(new Color(204, 51, 51)); // Rojo oscuro
+        btnVaciarCarrito.setForeground(Color.WHITE);
+        panelBotonesInferior.add(btnVaciarCarrito);
+
         btnFacturar = new JButton("Confirmar y Facturar Venta");
         btnFacturar.setFont(new Font("Arial", Font.BOLD, 14));
-        btnFacturar.setBackground(new Color(0, 102, 204));
+        btnFacturar.setBackground(new Color(0, 102, 204)); // Azul
         btnFacturar.setForeground(Color.WHITE);
-        panelInferior.add(btnFacturar, BorderLayout.EAST);
+        panelBotonesInferior.add(btnFacturar);
+
+        panelInferior.add(panelBotonesInferior, BorderLayout.EAST);
 
         this.add(panelInferior, BorderLayout.SOUTH);
     }
 
-    // =========================================================
-    // GETTERS PARA CONTROLADORES
-    // =========================================================
-    public JComboBox<String> getCbClientes() { return cbClientes; }
-    public JComboBox<String> getCbLibros() { return cbLibros; }
+    // Getters para que el controlador tome el control de la pantalla
+    public JTextField getTxtBuscarCliente() { return txtBuscarCliente; }
+    public JButton getBtnBuscarCliente() { return btnBuscarCliente; }
+    public JLabel getLblClienteSeleccionado() { return lblClienteSeleccionado; }
+
+    public JTextField getTxtBuscarLibro() { return txtBuscarLibro; }
+    public JButton getBtnBuscarLibro() { return btnBuscarLibro; }
+    public JLabel getLblLibroSeleccionado() { return lblLibroSeleccionado; }
+
     public JTextField getTxtCantidad() { return txtCantidad; }
     public JButton getBtnAgregar() { return btnAgregar; }
     public JTable getTablaCarrito() { return tablaCarrito; }
     public DefaultTableModel getModeloTabla() { return modeloTabla; }
     public JLabel getLblTotal() { return lblTotal; }
     public JButton getBtnFacturar() { return btnFacturar; }
+    
+    public JButton getBtnVaciarCarrito() { return btnVaciarCarrito; }
+    
+    
+    
+    
 }

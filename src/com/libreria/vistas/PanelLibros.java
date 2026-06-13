@@ -68,7 +68,7 @@ public class PanelLibros extends JPanel {
 // 2. PANEL DE TABLA Y BÚSQUEDA (Centro)
         JPanel panelBusqueda = new JPanel(new BorderLayout(5, 5));
         panelBusqueda.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
-        panelBusqueda.add(new JLabel("Buscar Libro (ISBN, Título o Autor): "), BorderLayout.WEST);
+        panelBusqueda.add(new JLabel("Buscar Libro (ISBN/ Título/ Autor): "), BorderLayout.WEST);
         txtBuscar = new JTextField();
         panelBusqueda.add(txtBuscar, BorderLayout.CENTER);
 
