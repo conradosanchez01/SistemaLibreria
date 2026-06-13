@@ -1,3 +1,5 @@
+
+
 package com.libreria.main;
 
 import com.libreria.vistas.VentanaPrincipal;
@@ -5,26 +7,21 @@ import com.libreria.vistas.VentanaPrincipal;
 public class Main {
     public static void main(String[] args) {
         
-        // Esto hace que la ventana se abra con el estilo visual del sistema operativo
+        // 1. Inicializamos FlatLaf (El diseño premium) ANTES de abrir nada
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
+//            com.formdev.flatlaf.FlatDarkLaf.setup();
+            
+            // Si en algún momento preferís el tema claro, comentá la línea de arriba y usá esta:
+             com.formdev.flatlaf.FlatLightLaf.setup();
         } catch (Exception ex) {
-            System.err.println("Error al cargar el diseño visual.");
+            System.err.println("Error al cargar el diseño visual FlatLaf.");
         }
 
-        // Crear y mostrar la ventana principal
+        // 2. Crear y mostrar la ventana principal
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                VentanaPrincipal ventana = new VentanaPrincipal();
-                // Hace que la ventana aparezca en el centro de la pantalla
-                ventana.setLocationRelativeTo(null); 
                
-                ventana.setVisible(true);
+                new VentanaPrincipal().setVisible(true);
             }
         });
     }

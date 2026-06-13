@@ -104,7 +104,7 @@ public class PanelVentas extends javax.swing.JPanel {
         // ==========================================
         // 2. PANEL CENTRAL: Tabla del Carrito
         // ==========================================
-        String[] columnas = {"ID Libro", "Título del Libro", "Cantidad", "Precio Unitario", "Subtotal"};
+        String[] columnas = {"ID Libro","ISBN", "Título del Libro", "Cantidad", "Precio Unitario", "Subtotal"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -112,6 +112,11 @@ public class PanelVentas extends javax.swing.JPanel {
         
         tablaCarrito = new JTable(modeloTabla);
         tablaCarrito.setFillsViewportHeight(true);
+        
+        // TRUCO Ocultamos la columna 0 (ID) de la vista del cajero, pero sigue existiendo para el código
+        tablaCarrito.getColumnModel().getColumn(0).setMinWidth(0);
+        tablaCarrito.getColumnModel().getColumn(0).setMaxWidth(0);
+        tablaCarrito.getColumnModel().getColumn(0).setWidth(0);
         JScrollPane scrollTabla = new JScrollPane(tablaCarrito);
         scrollTabla.setBorder(BorderFactory.createTitledBorder("Artículos en el Carrito Actual"));
         this.add(scrollTabla, BorderLayout.CENTER);

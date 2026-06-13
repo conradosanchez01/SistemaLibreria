@@ -3,6 +3,12 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package com.libreria.vistas;
+import com.libreria.dao.ClienteDAO;
+import com.libreria.dao.VentaDAO;
+import com.libreria.dao.LibroDAO;
+import com.libreria.controladores.ClienteControlador;
+import com.libreria.controladores.VentaControlador;
+import com.libreria.controladores.LibroControlador;
 
 /**
  *
@@ -24,9 +30,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     // 2. Definir un tamaño mínimo para que el usuario no la achique de más y rompa el diseño
     this.setMinimumSize(new java.awt.Dimension(1000, 700));
         
-        
-        
-        
+    
         
         // 1. Creamos la Vista (la pantalla "tonta")
 com.libreria.vistas.PanelClientes vistaClientes = new com.libreria.vistas.PanelClientes();
@@ -41,7 +45,7 @@ com.libreria.controladores.ClienteControlador controladorClientes = new com.libr
 jTabbedPane1.addTab("Gestión de Clientes", vistaClientes);
         
         
-        // Instanciación del módulo de Ventas con desacoplamiento arquitectónico
+        // Instanciación del módulo de Ventas 
 com.libreria.vistas.PanelVentas vistaVentas = new com.libreria.vistas.PanelVentas();
 com.libreria.dao.VentaDAO daoVentas = new com.libreria.dao.VentaDAO();
 com.libreria.controladores.VentaControlador controladorVentas = new com.libreria.controladores.VentaControlador(vistaVentas, daoVentas);
@@ -84,22 +88,7 @@ jTabbedPane1.addTab("Inventario de Libros", vistaLibros);
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
-      
-       // Inicializamos FlatLaf ANTES de crear la ventana
-        try {
-            // Activa el tema oscuro profesional (estilo modo oscuro de Windows/Mac):
-//            com.formdev.flatlaf.FlatDarkLaf.setup();
-            
-            // Si preferís el tema claro, comentá la línea de arriba y descomentá esta:
-             com.formdev.flatlaf.FlatLightLaf.setup();
-        } catch (Exception ex) {
-            logger.log(java.util.logging.Level.SEVERE, "No se pudo inicializar FlatLaf", ex);
-        }
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new VentanaPrincipal().setVisible(true));
-    }
+   
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTabbedPane jTabbedPane1;

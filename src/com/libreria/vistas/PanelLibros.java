@@ -29,39 +29,67 @@ public class PanelLibros extends JPanel {
         this.setLayout(new BorderLayout(10, 10));
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // 1. PANEL DE FORMULARIO (Arriba) - Cambiado a 5 filas para meter ISBN y Categoría
-        JPanel panelFormulario = new JPanel(new GridLayout(6, 2, 10, 10));
+        // 1. PANEL DE FORMULARIO (Arriba) - Cambiado filas para meter ISBN y Categoría
+      //Usando GridBagLayout para alinear
+        JPanel panelFormulario = new JPanel(new GridBagLayout());
         panelFormulario.setBorder(BorderFactory.createTitledBorder("Datos del Libro"));
 
-        panelFormulario.add(new JLabel("ISBN:"));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 10, 5, 10); // Márgenes internos
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Fila 0: ISBN
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.0;
+        panelFormulario.add(new JLabel("ISBN:"), gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 1.0;
         txtIsbn = new JTextField();
-        panelFormulario.add(txtIsbn);
+        panelFormulario.add(txtIsbn, gbc);
 
-        panelFormulario.add(new JLabel("Título:"));
+        // Fila 1: Título
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.0;
+        panelFormulario.add(new JLabel("Título:"), gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 1.0;
         txtTitulo = new JTextField();
-        panelFormulario.add(txtTitulo);
+        panelFormulario.add(txtTitulo, gbc);
 
-        panelFormulario.add(new JLabel("Autor:"));
+        // Fila 2: Autor
+        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0.0;
+        panelFormulario.add(new JLabel("Autor:"), gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 2; gbc.weightx = 1.0;
         txtAutor = new JTextField();
-        panelFormulario.add(txtAutor);
+        panelFormulario.add(txtAutor, gbc);
 
-        panelFormulario.add(new JLabel("Precio:"));
+        // Fila 3: Precio
+        gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0.0;
+        panelFormulario.add(new JLabel("Precio:"), gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 3; gbc.weightx = 1.0;
         txtPrecio = new JTextField();
-        panelFormulario.add(txtPrecio);
+        panelFormulario.add(txtPrecio, gbc);
 
-        panelFormulario.add(new JLabel("Stock:"));
+        // Fila 4: Stock
+        gbc.gridx = 0; gbc.gridy = 4; gbc.weightx = 0.0;
+        panelFormulario.add(new JLabel("Stock:"), gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 4; gbc.weightx = 1.0;
         txtStock = new JTextField();
-        panelFormulario.add(txtStock);
+        panelFormulario.add(txtStock, gbc);
 
-
-        panelFormulario.add(new JLabel("Categoría:"));
+        // Fila 5: Categoría (con su panel interno para el botón +)
+        gbc.gridx = 0; gbc.gridy = 5; gbc.weightx = 0.0;
+        panelFormulario.add(new JLabel("Categoría:"), gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 5; gbc.weightx = 1.0;
         JPanel panelCat = new JPanel(new BorderLayout(5, 0));
         cbCategoria = new JComboBox<>();
         btnNuevaCategoria = new JButton("+");
         btnNuevaCategoria.setToolTipText("Agregar nueva categoría"); 
         panelCat.add(cbCategoria, BorderLayout.CENTER);
         panelCat.add(btnNuevaCategoria, BorderLayout.EAST);
-        panelFormulario.add(panelCat);
+        panelFormulario.add(panelCat, gbc);
 
         this.add(panelFormulario, BorderLayout.NORTH);
 

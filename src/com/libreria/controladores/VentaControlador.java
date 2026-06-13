@@ -148,7 +148,7 @@ public class VentaControlador implements ActionListener {
     }
 
     private void ejecutarAgregarProducto() {
-        if (clienteActivo == null) {
+       if (clienteActivo == null) {
             JOptionPane.showMessageDialog(vista, "Debe seleccionar un cliente antes de armar el carrito.", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -167,7 +167,7 @@ public class VentaControlador implements ActionListener {
             
             for (int i = 0; i < modeloTabla.getRowCount(); i++) {
                 if (Integer.parseInt(modeloTabla.getValueAt(i, 0).toString()) == libroActivo.getIdLibro()) {
-                    cantidadPrevia = Integer.parseInt(modeloTabla.getValueAt(i, 2).toString());
+                    cantidadPrevia = Integer.parseInt(modeloTabla.getValueAt(i, 3).toString()); // Columna 3 es Cantidad
                     filaExistente = i;
                     break;
                 }
@@ -182,17 +182,16 @@ public class VentaControlador implements ActionListener {
 
             if (filaExistente != -1) {
                 double nuevoSubtotal = libroActivo.getPrecio() * cantidadTotalDeseada;
-                modeloTabla.setValueAt(cantidadTotalDeseada, filaExistente, 2);
-                modeloTabla.setValueAt("$" + nuevoSubtotal, filaExistente, 4);
+                modeloTabla.setValueAt(cantidadTotalDeseada, filaExistente, 3);
+                modeloTabla.setValueAt("$" + nuevoSubtotal, filaExistente, 5); // Columna 5 es Subtotal
             } else {
                 double subtotal = libroActivo.getPrecio() * cantidad;
-                modeloTabla.addRow(new Object[]{libroActivo.getIdLibro(), libroActivo.getTitulo(), cantidad, "$" + libroActivo.getPrecio(), "$" + subtotal});
+                // Inyectamos el ID (oculto) y el ISBN (visible)
+                modeloTabla.addRow(new Object[]{libroActivo.getIdLibro(), libroActivo.getIsbn(), libroActivo.getTitulo(), cantidad, "$" + libroActivo.getPrecio(), "$" + subtotal});
             }
 
             recalcularTotal();
             vista.getTxtCantidad().setText("1");
-            
-            // Medida de seguridad POS: No dejar cambiar de cliente a mitad de la carga
             vista.getTxtBuscarCliente().setEnabled(false);
             vista.getBtnBuscarCliente().setEnabled(false);
 
@@ -202,17 +201,17 @@ public class VentaControlador implements ActionListener {
     }
 
     private void recalcularTotal() {
-        totalVenta = 0.0;
+       totalVenta = 0.0;
         DefaultTableModel modelo = vista.getModeloTabla();
         for (int i = 0; i < modelo.getRowCount(); i++) {
-            String subtotalCelda = modelo.getValueAt(i, 4).toString().replace("$", "").trim();
+            String subtotalCelda = modelo.getValueAt(i, 5).toString().replace("$", "").trim(); // Columna 5
             totalVenta += Double.parseDouble(subtotalCelda);
         }
-        vista.getLblTotal().setText("TOTAL A PAGAR: $" + String.format("%.2f", totalVenta));
-    }
+        vista.getLblTotal().setText("TOTAL A PAGAR: $" + String.format("%.2f", totalVenta)); }
 
-    private void ejecutarFacturacion() {
-        DefaultTableModel modeloTabla = vista.getModeloTabla();
+    
+    
+    private void ejecutarFacturacion() {DefaultTableModel modeloTabla = vista.getModeloTabla();
         if (modeloTabla.getRowCount() == 0) {
             JOptionPane.showMessageDialog(vista, "El carrito de compras está vacío.", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
@@ -224,12 +223,12 @@ public class VentaControlador implements ActionListener {
         if (confirmacion != JOptionPane.YES_OPTION) return;
 
         try {
-            Venta nuevaVenta = new Venta(clienteActivo.getIdCliente(), new Date(), totalVenta);
+            Venta nuevaVenta = new Venta(clienteActivo.getIdCliente(), new java.util.Date(), totalVenta);
 
             for (int i = 0; i < modeloTabla.getRowCount(); i++) {
-                int idLibro = Integer.parseInt(modeloTabla.getValueAt(i, 0).toString());
-                int cantidad = Integer.parseInt(modeloTabla.getValueAt(i, 2).toString());
-                String precioCelda = modeloTabla.getValueAt(i, 3).toString().replace("$", "").trim();
+                int idLibro = Integer.parseInt(modeloTabla.getValueAt(i, 0).toString()); // Columna 0 (Oculta)
+                int cantidad = Integer.parseInt(modeloTabla.getValueAt(i, 3).toString()); // Columna 3
+                String precioCelda = modeloTabla.getValueAt(i, 4).toString().replace("$", "").trim(); // Columna 4
                 double precioUnitario = Double.parseDouble(precioCelda);
 
                 DetalleVenta detalle = new DetalleVenta(idLibro, cantidad, precioUnitario);
@@ -240,15 +239,13 @@ public class VentaControlador implements ActionListener {
 
             if (exito) {
                 JOptionPane.showMessageDialog(vista, "¡Venta procesada con éxito en la Base de Datos!\nEl stock se actualizó correctamente.", "Éxito transaccional", JOptionPane.INFORMATION_MESSAGE);
-
                 generarFacturaPDF(clienteActivo.getApellido() + " " + clienteActivo.getNombre(), totalVenta);
-                
-                resetearPOS(); // Llamamos al metodo que creamos para limpiar todo y reutilizar codigo
+                resetearPOS();
             }
 
         } catch (com.libreria.excepciones.StockInsuficienteException ex) {
             JOptionPane.showMessageDialog(vista, ex.getMessage(), "Stock Insuficiente", JOptionPane.ERROR_MESSAGE);
-        } catch (SQLException ex) {
+        } catch (java.sql.SQLException ex) {
             JOptionPane.showMessageDialog(vista, "Error crítico en el motor relacional:\n" + ex.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(vista, "Error general del sistema de facturación: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -256,37 +253,49 @@ public class VentaControlador implements ActionListener {
     }
 
     private void generarFacturaPDF(String nombreCliente, double totalFacturado) {
-        try {
+       try {
             String nombreArchivo = "Factura_" + System.currentTimeMillis() + ".pdf";
             com.itextpdf.text.Document documento = new com.itextpdf.text.Document();
             com.itextpdf.text.pdf.PdfWriter.getInstance(documento, new java.io.FileOutputStream(nombreArchivo));
             
             documento.open();
-            documento.add(new com.itextpdf.text.Paragraph("SISTEMA LIBRERIA - COMPROBANTE DE VENTA\n\n"));
-            documento.add(new com.itextpdf.text.Paragraph("Cliente: " + nombreCliente));
-            documento.add(new com.itextpdf.text.Paragraph("Fecha: " + new Date().toString() + "\n\n"));
             
+            // 1. Damos formato local a la fecha (DD/MM/AAAA HH:mm)
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm");
+            String fechaLocal = sdf.format(new java.util.Date());
+            
+            // 2. Fuentes para darle jerarquía visual
+            com.itextpdf.text.Font fuenteTitulo = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 16, com.itextpdf.text.Font.BOLD);
+            com.itextpdf.text.Font fuenteNormal = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 12, com.itextpdf.text.Font.NORMAL);
+
+            documento.add(new com.itextpdf.text.Paragraph("SISTEMA LIBRERÍA - COMPROBANTE DE VENTA\n\n", fuenteTitulo));
+            documento.add(new com.itextpdf.text.Paragraph("Cliente: " + nombreCliente, fuenteNormal));
+            documento.add(new com.itextpdf.text.Paragraph("Fecha: " + fechaLocal + "\n\n", fuenteNormal));
+            
+            // 3. Ajustamos el ancho de las columnas (el ISBN necesita más espacio que la cantidad)
             com.itextpdf.text.pdf.PdfPTable tablaPDF = new com.itextpdf.text.pdf.PdfPTable(4);
-            tablaPDF.addCell("ID Libro");
+            tablaPDF.setWidths(new float[]{2.5f, 4f, 1f, 2f});
+            
+            tablaPDF.addCell("ISBN");
             tablaPDF.addCell("Título");
-            tablaPDF.addCell("Cantidad");
+            tablaPDF.addCell("Cant.");
             tablaPDF.addCell("Subtotal");
             
             DefaultTableModel modeloTabla = vista.getModeloTabla();
             for (int i = 0; i < modeloTabla.getRowCount(); i++) {
-                tablaPDF.addCell(modeloTabla.getValueAt(i, 0).toString());
-                tablaPDF.addCell(modeloTabla.getValueAt(i, 1).toString());
-                tablaPDF.addCell(modeloTabla.getValueAt(i, 2).toString());
-                tablaPDF.addCell(modeloTabla.getValueAt(i, 4).toString());
+                tablaPDF.addCell(modeloTabla.getValueAt(i, 1).toString()); // Columna 1: ISBN
+                tablaPDF.addCell(modeloTabla.getValueAt(i, 2).toString()); // Columna 2: Título
+                tablaPDF.addCell(modeloTabla.getValueAt(i, 3).toString()); // Columna 3: Cantidad
+                tablaPDF.addCell(modeloTabla.getValueAt(i, 5).toString()); // Columna 5: Subtotal
             }
             
             documento.add(tablaPDF);
-            documento.add(new com.itextpdf.text.Paragraph("\nTOTAL ABONADO: $" + String.format("%.2f", totalFacturado)));
+            documento.add(new com.itextpdf.text.Paragraph("\nTOTAL ABONADO: $" + String.format("%.2f", totalFacturado), fuenteTitulo));
             documento.close();
             
             java.awt.Desktop.getDesktop().open(new java.io.File(nombreArchivo));
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(vista, "Error al escribir archivo de impresión: " + e.getMessage(), "Error PDF", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(vista, "Error al generar el PDF: " + e.getMessage(), "Error PDF", JOptionPane.ERROR_MESSAGE);
         }
     }
     
