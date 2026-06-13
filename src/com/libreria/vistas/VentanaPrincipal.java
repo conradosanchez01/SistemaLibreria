@@ -18,7 +18,11 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     public VentanaPrincipal() {
         initComponents();
 
-        
+        // 1. Centrar la ventana en la pantalla al abrir
+    this.setLocationRelativeTo(null);
+    
+    // 2. Definir un tamaño mínimo para que el usuario no la achique de más y rompa el diseño
+    this.setMinimumSize(new java.awt.Dimension(1000, 700));
         
         
         
@@ -34,7 +38,7 @@ com.libreria.dao.ClienteDAO daoClientes = new com.libreria.dao.ClienteDAO();
 com.libreria.controladores.ClienteControlador controladorClientes = new com.libreria.controladores.ClienteControlador(vistaClientes, daoClientes);
 
 // 4. Finalmente, agregamos la Vista (que ya está "enchufada" y funcionando) a la pestaña
-jTabbedPane1.addTab("Clientes (MVC Puro)", vistaClientes);
+jTabbedPane1.addTab("Gestión de Clientes", vistaClientes);
         
         
         // Instanciación del módulo de Ventas con desacoplamiento arquitectónico
@@ -42,7 +46,7 @@ com.libreria.vistas.PanelVentas vistaVentas = new com.libreria.vistas.PanelVenta
 com.libreria.dao.VentaDAO daoVentas = new com.libreria.dao.VentaDAO();
 com.libreria.controladores.VentaControlador controladorVentas = new com.libreria.controladores.VentaControlador(vistaVentas, daoVentas);
 
-jTabbedPane1.addTab("Ventas (MVC Estricto)", vistaVentas);
+jTabbedPane1.addTab("Punto de Venta", vistaVentas);
         
         
 
@@ -51,7 +55,7 @@ com.libreria.vistas.PanelLibros vistaLibros = new com.libreria.vistas.PanelLibro
 com.libreria.dao.LibroDAO daoLibros = new com.libreria.dao.LibroDAO();
 com.libreria.controladores.LibroControlador controladorLibros = new com.libreria.controladores.LibroControlador(vistaLibros, daoLibros);
 
-jTabbedPane1.addTab("Libros (MVC Estricto)", vistaLibros);
+jTabbedPane1.addTab("Inventario de Libros", vistaLibros);
 
 
 
@@ -72,23 +76,7 @@ jTabbedPane1.addTab("Libros (MVC Estricto)", vistaLibros);
         jTabbedPane1 = new javax.swing.JTabbedPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 800, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 600, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
+        getContentPane().add(jTabbedPane1, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -97,22 +85,17 @@ jTabbedPane1.addTab("Libros (MVC Estricto)", vistaLibros);
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
+      
+       // Inicializamos FlatLaf ANTES de crear la ventana
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
+            // Activa el tema oscuro profesional (estilo modo oscuro de Windows/Mac):
+//            com.formdev.flatlaf.FlatDarkLaf.setup();
+            
+            // Si preferís el tema claro, comentá la línea de arriba y descomentá esta:
+             com.formdev.flatlaf.FlatLightLaf.setup();
+        } catch (Exception ex) {
+            logger.log(java.util.logging.Level.SEVERE, "No se pudo inicializar FlatLaf", ex);
         }
-        //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new VentanaPrincipal().setVisible(true));
