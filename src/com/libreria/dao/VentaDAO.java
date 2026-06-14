@@ -111,4 +111,81 @@ public class VentaDAO {
             }
         }
     }
+    
+    // ---------------------------------------------------------
+    // MÓDULO REPORTES: Calcular total histórico
+    // ---------------------------------------------------------
+    public double obtenerGananciasTotales() {
+        double total = 0;
+        String sql = "SELECT SUM(total) as ganancia_total FROM ventas";
+        try (Connection con = ConexionDB.conectar();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                total = rs.getDouble("ganancia_total");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al calcular ganancias: " + e.getMessage());
+        }
+        return total;
+    }
+
+//    // ---------------------------------------------------------
+//    // MÓDULO REPORTES: Filtrar ventas por mes desde SQL
+//    // ---------------------------------------------------------
+//    public java.util.List<Venta> obtenerVentasPorMes(int mes) {
+//        java.util.List<Venta> lista = new java.util.ArrayList<>();
+//        // Le pedimos a MySQL que filtre usando la función MONTH()
+//        String sql = "SELECT id_venta, fecha, total FROM ventas WHERE MONTH(fecha) = ?";
+//        try (Connection con = ConexionDB.conectar();
+//             PreparedStatement ps = con.prepareStatement(sql)) {
+//            
+//            ps.setInt(1, mes);
+//            try (ResultSet rs = ps.executeQuery()) {
+//                while (rs.next()) {
+//                    Venta v = new Venta();
+//                    v.setIdVenta(rs.getInt("id_venta"));
+//                    v.setFecha(rs.getTimestamp("fecha"));
+//                    v.setTotal(rs.getDouble("total"));
+//                    lista.add(v);
+//                }
+//            }
+//        } catch (SQLException e) {
+//            System.err.println("Error al filtrar por mes: " + e.getMessage());
+//        }
+//        return lista;
+//    }
+   // ---------------------------------------------------------
+    // MÓDULO REPORTES: Filtrar ventas por mes con Detalle de Libros
+    // ---------------------------------------------------------
+    public java.util.List<Object[]> obtenerVentasPorMesDetalladas(int mes) {
+        java.util.List<Object[]> lista = new java.util.ArrayList<>();
+        
+        // Magia SQL: GROUP_CONCAT une los títulos de los libros separados por coma
+        String sql = "SELECT v.id_venta, GROUP_CONCAT(l.titulo SEPARATOR ', ') as libros_vendidos, v.fecha, v.total " +
+                     "FROM ventas v " +
+                     "JOIN detalles_ventas d ON v.id_venta = d.id_venta " +
+                     "JOIN libros l ON d.id_libro = l.id_libro " +
+                     "WHERE MONTH(v.fecha) = ? " +
+                     "GROUP BY v.id_venta, v.fecha, v.total";
+                     
+        try (Connection con = ConexionDB.conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, mes);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Object[] fila = new Object[4];
+                    fila[0] = rs.getInt("id_venta");
+                    fila[1] = rs.getString("libros_vendidos"); // Acá viene el texto "Libro A, Libro B"
+                    fila[2] = rs.getTimestamp("fecha");
+                    fila[3] = rs.getDouble("total");
+                    lista.add(fila);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al filtrar por mes con detalles: " + e.getMessage());
+        }
+        return lista;
+    }
 }

@@ -150,4 +150,43 @@ public class LibroDAO {
         return lista;
     }
     
+    
+    
+    // ---------------------------------------------------------
+    // MÓDULO REPORTES: Top 3 Libros más vendidos
+    // ---------------------------------------------------------
+    public java.util.List<Object[]> obtenerTop3LibrosVendidos() {
+        java.util.List<Object[]> top3 = new java.util.ArrayList<>();
+        
+        // ¡Magia SQL! Cruzamos tablas (JOIN), agrupamos por libro y sumamos cantidades
+        String sql = "SELECT l.id_libro, l.titulo, SUM(d.cantidad) as total_vendido " +
+                     "FROM libros l " +
+                     "JOIN detalles_ventas d ON l.id_libro = d.id_libro " +
+                     "GROUP BY l.id_libro, l.titulo " +
+                     "ORDER BY total_vendido DESC " +
+                     "LIMIT 3";
+                     
+        try (Connection con = ConexionDB.conectar();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            while (rs.next()) {
+                // Empaquetamos la fila exacta como la necesita la Vista
+                Object[] fila = new Object[4];
+                fila[0] = rs.getInt("id_libro");
+                fila[1] = rs.getString("titulo");
+                fila[2] = "Top Vendido";
+                fila[3] = rs.getInt("total_vendido");
+                
+                top3.add(fila);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener el Top 3: " + e.getMessage());
+        }
+        return top3;
+    }
+    
+    
+    
+    
 }

@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 
 public class Venta {
+    private int idVenta;
     private int idCliente;
     private Date fecha;
     private double total;
@@ -20,7 +21,7 @@ public class Venta {
         this.detalles = new ArrayList<>();
     }
 
-    // CONSTRUCTOR CON PARÁMETROS (Soluciona el Error 1)
+    // CONSTRUCTOR CON PARÁMETROS 
     public Venta(int idCliente, Date fecha, double total) {
         this.idCliente = idCliente;
         this.fecha = fecha;
@@ -28,12 +29,16 @@ public class Venta {
         this.detalles = new ArrayList<>();
     }
 
-    // MÉTODO PARA AGREGAR DETALLES (Soluciona el Error 3)
+    // MÉTODO PARA AGREGAR DETALLES 
     public void agregarDetalle(DetalleVenta detalle) {
         this.detalles.add(detalle);
     }
 
     // --- GETTERS Y SETTERS (Para que VentaDAO pueda leer los datos) ---
+    
+    public int getIdVenta() { return idVenta; }
+    public void setIdVenta(int idVenta) { this.idVenta = idVenta; }
+    
     public int getIdCliente() {
         return idCliente;
     }

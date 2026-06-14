@@ -13,7 +13,7 @@ public class DetalleVenta {
     public DetalleVenta() {
     }
 
-    // CONSTRUCTOR CON PARÁMETROS (Soluciona el Error 2)
+    // CONSTRUCTOR CON PARÁMETROS 
     public DetalleVenta(int idLibro, int cantidad, double precioUnitario) {
         this.idLibro = idLibro;
         this.cantidad = cantidad;

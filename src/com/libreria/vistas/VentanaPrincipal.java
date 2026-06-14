@@ -87,9 +87,21 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         de la pantalla gracias al addactionlistener(this)  */
         jTabbedPane1.addTab("Inventario de Libros", vistaLibros);
 
-        // 4. Control de acceso estricto
+       // 4. Control de acceso estricto
         if (rol.equals("DUEÑO")) {
-            // Futuros módulos
+            // 1. Instanciamos la Vista de reportes
+            PanelReportes vistaReportes = new PanelReportes();
+            
+            // 2. Instanciamos los DAOs que necesita el Controlador para sus matemáticas
+            VentaDAO daoVentasReportes = new VentaDAO();
+            LibroDAO daoLibrosReportes = new LibroDAO();
+            
+            // 3. Enchufamos todo al Controlador
+            
+            new com.libreria.controladores.ReportesControlador(vistaReportes, daoVentasReportes, daoLibrosReportes);
+            
+            // 4. Agregamos la pestaña final, exclusiva para el jefe
+            jTabbedPane1.addTab("Reportes Estadísticos", vistaReportes);
         }
     }
 
