@@ -181,7 +181,7 @@ public class ReportesControlador {
                 documento.open(); // Empezamos a editar el documento
 
                 // 4. Diseñamos el Encabezado Institucional del PDF (Centrado y en Negrita)
-                Paragraph titulo = new Paragraph("LIBRERÍA EL FARO", FontFactory.getFont("Arial", 18, com.itextpdf.text.Font.BOLD));
+                Paragraph titulo = new Paragraph("LIBRERÍA EL ROBLE", FontFactory.getFont("Arial", 18, com.itextpdf.text.Font.BOLD));
                 titulo.setAlignment(Element.ALIGN_CENTER);
                 documento.add(titulo);
 

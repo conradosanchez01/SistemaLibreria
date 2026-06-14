@@ -279,7 +279,7 @@ public class VentaControlador implements ActionListener {
                 String fechaLocal = sdf.format(new java.util.Date());
                 
                 // 4. Diseñamos el Encabezado Institucional corporativo
-                com.itextpdf.text.Paragraph titulo = new com.itextpdf.text.Paragraph("LIBRERÍA EL FARO", com.itextpdf.text.FontFactory.getFont("Arial", 18, com.itextpdf.text.Font.BOLD));
+                com.itextpdf.text.Paragraph titulo = new com.itextpdf.text.Paragraph("LIBRERÍA EL ROBLE", com.itextpdf.text.FontFactory.getFont("Arial", 18, com.itextpdf.text.Font.BOLD));
                 titulo.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                 documento.add(titulo);
 
