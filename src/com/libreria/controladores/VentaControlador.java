@@ -41,7 +41,6 @@ public class VentaControlador implements ActionListener {
         this.vista.getBtnAgregar().addActionListener(this);
         this.vista.getBtnFacturar().addActionListener(this);
         this.vista.getBtnVaciarCarrito().addActionListener(this);
-        
     }
 
     @Override
@@ -55,8 +54,8 @@ public class VentaControlador implements ActionListener {
         } else if (e.getSource() == vista.getBtnFacturar()) {
             ejecutarFacturacion();
         } else if (e.getSource() == vista.getBtnVaciarCarrito()) {
-    ejecutarVaciarCarrito();
-}
+            ejecutarVaciarCarrito();
+        }
     }
 
     private void buscarClienteDinamico() {
@@ -201,17 +200,17 @@ public class VentaControlador implements ActionListener {
     }
 
     private void recalcularTotal() {
-       totalVenta = 0.0;
+        totalVenta = 0.0;
         DefaultTableModel modelo = vista.getModeloTabla();
         for (int i = 0; i < modelo.getRowCount(); i++) {
             String subtotalCelda = modelo.getValueAt(i, 5).toString().replace("$", "").trim(); // Columna 5
             totalVenta += Double.parseDouble(subtotalCelda);
         }
-        vista.getLblTotal().setText("TOTAL A PAGAR: $" + String.format("%.2f", totalVenta)); }
+        vista.getLblTotal().setText("TOTAL A PAGAR: $" + String.format("%.2f", totalVenta)); 
+    }
 
-    
-    
-    private void ejecutarFacturacion() {DefaultTableModel modeloTabla = vista.getModeloTabla();
+    private void ejecutarFacturacion() {
+        DefaultTableModel modeloTabla = vista.getModeloTabla();
         if (modeloTabla.getRowCount() == 0) {
             JOptionPane.showMessageDialog(vista, "El carrito de compras está vacío.", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
@@ -252,48 +251,99 @@ public class VentaControlador implements ActionListener {
         }
     }
 
+    // =========================================================================
+    // LÓGICA EXCLUSIVA DE ITEXT PARA EXPORTAR LA FACTURA ACTUAL A PDF
+    // =========================================================================
     private void generarFacturaPDF(String nombreCliente, double totalFacturado) {
        try {
-            String nombreArchivo = "Factura_" + System.currentTimeMillis() + ".pdf";
-            com.itextpdf.text.Document documento = new com.itextpdf.text.Document();
-            com.itextpdf.text.pdf.PdfWriter.getInstance(documento, new java.io.FileOutputStream(nombreArchivo));
+            // 1. Abrimos el JFileChooser de Windows para elegir la ruta de guardado
+            JFileChooser selectorArchivo = new JFileChooser();
+            selectorArchivo.setDialogTitle("Guardar Comprobante de Venta");
             
-            documento.open();
-            
-            // 1. Damos formato local a la fecha (DD/MM/AAAA HH:mm)
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm");
-            String fechaLocal = sdf.format(new java.util.Date());
-            
-            // 2. Fuentes para darle jerarquía visual
-            com.itextpdf.text.Font fuenteTitulo = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 16, com.itextpdf.text.Font.BOLD);
-            com.itextpdf.text.Font fuenteNormal = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 12, com.itextpdf.text.Font.NORMAL);
+            // Limpiamos el nombre del cliente para sugerir un nombre de archivo válido
+            String nombreArchivoSugerido = "Factura_" + nombreCliente.replaceAll("[^a-zA-Z0-9_-]", "") + "_" + System.currentTimeMillis() + ".pdf";
+            selectorArchivo.setSelectedFile(new java.io.File(nombreArchivoSugerido));
 
-            documento.add(new com.itextpdf.text.Paragraph("SISTEMA LIBRERÍA - COMPROBANTE DE VENTA\n\n", fuenteTitulo));
-            documento.add(new com.itextpdf.text.Paragraph("Cliente: " + nombreCliente, fuenteNormal));
-            documento.add(new com.itextpdf.text.Paragraph("Fecha: " + fechaLocal + "\n\n", fuenteNormal));
-            
-            // 3. Ajustamos el ancho de las columnas (el ISBN necesita más espacio que la cantidad)
-            com.itextpdf.text.pdf.PdfPTable tablaPDF = new com.itextpdf.text.pdf.PdfPTable(4);
-            tablaPDF.setWidths(new float[]{2.5f, 4f, 1f, 2f});
-            
-            tablaPDF.addCell("ISBN");
-            tablaPDF.addCell("Título");
-            tablaPDF.addCell("Cant.");
-            tablaPDF.addCell("Subtotal");
-            
-            DefaultTableModel modeloTabla = vista.getModeloTabla();
-            for (int i = 0; i < modeloTabla.getRowCount(); i++) {
-                tablaPDF.addCell(modeloTabla.getValueAt(i, 1).toString()); // Columna 1: ISBN
-                tablaPDF.addCell(modeloTabla.getValueAt(i, 2).toString()); // Columna 2: Título
-                tablaPDF.addCell(modeloTabla.getValueAt(i, 3).toString()); // Columna 3: Cantidad
-                tablaPDF.addCell(modeloTabla.getValueAt(i, 5).toString()); // Columna 5: Subtotal
+            int seleccion = selectorArchivo.showSaveDialog(vista);
+
+            if (seleccion == JFileChooser.APPROVE_OPTION) {
+                java.io.File archivoDestino = selectorArchivo.getSelectedFile();
+                com.itextpdf.text.Document documento = new com.itextpdf.text.Document();
+                
+                // 2. Vinculamos el escritor de iText al archivo físico elegido
+                com.itextpdf.text.pdf.PdfWriter.getInstance(documento, new java.io.FileOutputStream(archivoDestino));
+                documento.open();
+                
+                // 3. Damos formato local a la fecha (DD/MM/AAAA HH:mm)
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm");
+                String fechaLocal = sdf.format(new java.util.Date());
+                
+                // 4. Diseñamos el Encabezado Institucional corporativo
+                com.itextpdf.text.Paragraph titulo = new com.itextpdf.text.Paragraph("LIBRERÍA EL FARO", com.itextpdf.text.FontFactory.getFont("Arial", 18, com.itextpdf.text.Font.BOLD));
+                titulo.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+                documento.add(titulo);
+
+                com.itextpdf.text.Paragraph subtitulo = new com.itextpdf.text.Paragraph("Comprobante Oficial de Venta\n\n", com.itextpdf.text.FontFactory.getFont("Arial", 12, com.itextpdf.text.Font.ITALIC));
+                subtitulo.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+                documento.add(subtitulo);
+
+                // Añadimos información del cliente y fecha (Usando NORMAL para compatibilidad de iText)
+                documento.add(new com.itextpdf.text.Paragraph("Cliente: " + nombreCliente, com.itextpdf.text.FontFactory.getFont("Arial", 10, com.itextpdf.text.Font.BOLD)));
+                documento.add(new com.itextpdf.text.Paragraph("Fecha de Emisión: " + fechaLocal + "\n\n", com.itextpdf.text.FontFactory.getFont("Arial", 10, com.itextpdf.text.Font.NORMAL)));
+                
+                // 5. Ajustamos el ancho de las columnas (el ISBN necesita más espacio que la cantidad)
+                com.itextpdf.text.pdf.PdfPTable tablaPDF = new com.itextpdf.text.pdf.PdfPTable(4);
+                tablaPDF.setWidthPercentage(100); // Forzamos a que ocupe todo el ancho
+                tablaPDF.setWidths(new float[]{2.5f, 4f, 1f, 2f}); // Proporciones de las columnas
+                
+                // 6. Inyectamos las Cabeceras de las columnas con fondo gris sutil
+                String[] cabeceras = {"ISBN", "Título", "Cant.", "Subtotal"};
+                for (String textoCabecera : cabeceras) {
+                    com.itextpdf.text.pdf.PdfPCell celdaCabecera = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(textoCabecera, com.itextpdf.text.FontFactory.getFont("Arial", 10, com.itextpdf.text.Font.BOLD)));
+                    celdaCabecera.setHorizontalAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+                    celdaCabecera.setPadding(6);
+                    celdaCabecera.setBackgroundColor(com.itextpdf.text.BaseColor.LIGHT_GRAY);
+                    tablaPDF.addCell(celdaCabecera);
+                }
+                
+                // 7. Recorremos el carrito (JTable) e inyectamos los datos en el PDF
+                DefaultTableModel modeloTabla = vista.getModeloTabla();
+                for (int i = 0; i < modeloTabla.getRowCount(); i++) {
+                    String[] valoresCelda = {
+                        modeloTabla.getValueAt(i, 1).toString(), // ISBN
+                        modeloTabla.getValueAt(i, 2).toString(), // Título
+                        modeloTabla.getValueAt(i, 3).toString(), // Cantidad
+                        modeloTabla.getValueAt(i, 5).toString()  // Subtotal
+                    };
+                    
+                    for (int col = 0; col < valoresCelda.length; col++) {
+                        com.itextpdf.text.pdf.PdfPCell celdaDato = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(valoresCelda[col], com.itextpdf.text.FontFactory.getFont("Arial", 9, com.itextpdf.text.Font.NORMAL)));
+                        celdaDato.setPadding(5);
+                        
+                        // Alineación: Cantidad y Subtotal al centro. Textos a la izquierda.
+                        if (col == 2 || col == 3) {
+                            celdaDato.setHorizontalAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+                        } else {
+                            celdaDato.setHorizontalAlignment(com.itextpdf.text.Element.ALIGN_LEFT);
+                        }
+                        tablaPDF.addCell(celdaDato);
+                    }
+                }
+                
+                // Acoplamos la tabla al documento principal
+                documento.add(tablaPDF);
+                
+                // 8. Agregamos el Total Abonado destacado al final alineado a la derecha
+                com.itextpdf.text.Paragraph parrafoTotal = new com.itextpdf.text.Paragraph("\nTOTAL ABONADO: $" + String.format("%.2f", totalFacturado), com.itextpdf.text.FontFactory.getFont("Arial", 14, com.itextpdf.text.Font.BOLD));
+                parrafoTotal.setAlignment(com.itextpdf.text.Element.ALIGN_RIGHT);
+                documento.add(parrafoTotal);
+                
+                documento.close();
+                
+                // 9. Automáticamente abrimos el PDF generado en pantalla usando la herramienta nativa de Windows
+                java.awt.Desktop.getDesktop().open(archivoDestino);
             }
             
-            documento.add(tablaPDF);
-            documento.add(new com.itextpdf.text.Paragraph("\nTOTAL ABONADO: $" + String.format("%.2f", totalFacturado), fuenteTitulo));
-            documento.close();
-            
-            java.awt.Desktop.getDesktop().open(new java.io.File(nombreArchivo));
         } catch (Exception e) {
             JOptionPane.showMessageDialog(vista, "Error al generar el PDF: " + e.getMessage(), "Error PDF", JOptionPane.ERROR_MESSAGE);
         }
@@ -335,12 +385,4 @@ public class VentaControlador implements ActionListener {
         vista.getTxtBuscarCliente().setEnabled(true);
         vista.getBtnBuscarCliente().setEnabled(true);
     }
-    
-    
-    
-    
-    
-    
-    
-    
 }

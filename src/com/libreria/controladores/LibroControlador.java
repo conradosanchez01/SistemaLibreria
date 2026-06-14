@@ -11,6 +11,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -28,14 +30,14 @@ public class LibroControlador implements ActionListener {
         this.libroDao = libroDao;
         this.categoriaDao = new CategoriaDAO();
 
-        // Enchufamos los botones y la tabla
+        // Enchufamos los botones y la tabla a sus respectivos escuchadores de acciones
         this.vista.getBtnGuardar().addActionListener(this);
         this.vista.getBtnModificar().addActionListener(this);
         this.vista.getBtnEliminar().addActionListener(this);
         this.vista.getBtnLimpiar().addActionListener(this);
         this.vista.getBtnNuevaCategoria().addActionListener(this);
         
-        
+        // Escuchador para detectar cuando el usuario hace clic en una fila de la tabla
         this.vista.getTablaLibros().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -43,14 +45,26 @@ public class LibroControlador implements ActionListener {
             }
         });
         
-        // Escuchador en tiempo real para la barra de búsqueda
-     this.vista.getTxtBuscar().addKeyListener(new java.awt.event.KeyAdapter() {
-         @Override
-         public void keyReleased(java.awt.event.KeyEvent evt) {
-             filtrarLibros();
-         }
-     });
+        // Escuchador en tiempo real para la barra de búsqueda (KeyReleased)
+        this.vista.getTxtBuscar().addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                filtrarLibros();
+            }
+        });
 
+        // =====================================================================
+        // REFRESCO AUTOMÁTICO DE ESTADO 
+        // Agregamos un vigilante al Panel. Cuando el JTabbedPane muestra esta pestaña,
+        // se dispara el evento 'componentShown' y forzamos una recarga silenciosa de la BD.
+        this.vista.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                cargarTablaLibros();
+            }
+        });
+
+        // Carga inicial al momento de construir el controlador
         cargarCategoriasCombo();
         cargarTablaLibros();
     }
@@ -66,10 +80,11 @@ public class LibroControlador implements ActionListener {
         } else if (e.getSource() == vista.getBtnLimpiar()) {
             limpiarCampos();
         } else if (e.getSource() == vista.getBtnNuevaCategoria()) {
-             agregarNuevaCategoria();
+            agregarNuevaCategoria();
         }
     }
 
+    // Método que trae las categorías de la BD y las inyecta en el ComboBox
     private void cargarCategoriasCombo() {
         try {
             vista.getCbCategoria().removeAllItems();
@@ -82,11 +97,12 @@ public class LibroControlador implements ActionListener {
         }
     }
 
+    // Método central que lee el stock de MySQL y dibuja la tabla
     private void cargarTablaLibros() {
         try {
             DefaultTableModel modelo = vista.getModeloTabla();
-            modelo.setRowCount(0);
-            List<Libro> lista = libroDao.obtenerTodos();
+            modelo.setRowCount(0); // Borra la "foto" vieja
+            List<Libro> lista = libroDao.obtenerTodos(); // Saca la "foto" nueva
             for (Libro l : lista) {
                 modelo.addRow(new Object[]{l.getIdLibro(), l.getIsbn(), l.getTitulo(), l.getAutor(), l.getPrecio(), l.getStock(), l.getIdCategoria()});
             }
@@ -96,7 +112,7 @@ public class LibroControlador implements ActionListener {
     }
 
     private void guardarLibro() {
-        if (!validarCampos()) return;
+        if (!validarCampos()) return; // Si algún campo está mal, abortamos la operación
         int indexCat = vista.getCbCategoria().getSelectedIndex();
 
         try {
@@ -114,12 +130,13 @@ public class LibroControlador implements ActionListener {
             libroDao.insertar(nuevo);
             JOptionPane.showMessageDialog(vista, "Libro guardado con éxito.");
             limpiarCampos();
-            cargarTablaLibros();
+            cargarTablaLibros(); // Recarga visual post-guardado
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(vista, ex.getMessage(), "Error de Persistencia", JOptionPane.ERROR_MESSAGE);
         }
     }
 
+    // Volca los datos de la fila seleccionada a los campos de texto
     private void seleccionarLibro() {
         int fila = vista.getTablaLibros().getSelectedRow();
         if (fila == -1) return;
@@ -131,8 +148,10 @@ public class LibroControlador implements ActionListener {
         vista.getTxtPrecio().setText(vista.getTablaLibros().getValueAt(fila, 4).toString());
         vista.getTxtStock().setText(vista.getTablaLibros().getValueAt(fila, 5).toString());
         
+        // Empareja el ID de categoría oculto con el índice visual del ComboBox
         int idCatBusqueda = Integer.parseInt(vista.getTablaLibros().getValueAt(fila, 6).toString());
-           for (int i = 0; i < datosTecnicosCategorias.size(); i++) {            int idActual = Integer.parseInt(datosTecnicosCategorias.get(i).split("::")[0]);
+        for (int i = 0; i < datosTecnicosCategorias.size(); i++) {            
+            int idActual = Integer.parseInt(datosTecnicosCategorias.get(i).split("::")[0]);
             if (idActual == idCatBusqueda) {
                 vista.getCbCategoria().setSelectedIndex(i);
                 break;
@@ -188,6 +207,7 @@ public class LibroControlador implements ActionListener {
         }
     }
 
+    // Devuelve el formulario a su estado original vacío
     private void limpiarCampos() {
         vista.getTxtIsbn().setText("");
         vista.getTxtTitulo().setText("");
@@ -199,6 +219,7 @@ public class LibroControlador implements ActionListener {
         vista.getTablaLibros().clearSelection();
     }
 
+    // Barrera de seguridad para evitar datos corruptos
     private boolean validarCampos() {
         if (vista.getTxtIsbn().getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(vista, "El ISBN no puede estar vacío.");
@@ -240,62 +261,60 @@ public class LibroControlador implements ActionListener {
     }
     
     private void agregarNuevaCategoria() {
-     // 1. Le pedimos al usuario que escriba la categoría
-     String nuevaCat = JOptionPane.showInputDialog(vista, "Ingrese el nombre de la nueva categoría:", "Nueva Categoría", JOptionPane.PLAIN_MESSAGE);
+        // 1. Le pedimos al usuario que escriba la categoría
+        String nuevaCat = JOptionPane.showInputDialog(vista, "Ingrese el nombre de la nueva categoría:", "Nueva Categoría", JOptionPane.PLAIN_MESSAGE);
 
-     // 2. Si no canceló y escribió algo, procedemos
-     if (nuevaCat != null && !nuevaCat.trim().isEmpty()) {
-         try {
-             // 3. La guardamos en MySQL
-             categoriaDao.insertarCategoria(nuevaCat.trim());
+        // 2. Si no canceló y escribió algo, procedemos
+        if (nuevaCat != null && !nuevaCat.trim().isEmpty()) {
+            try {
+                // 3. La guardamos en MySQL
+                categoriaDao.insertarCategoria(nuevaCat.trim());
 
-             // 4. Recargamos el ComboBox mágicamente para que aparezca
-             cargarCategoriasCombo();
+                // 4. Recargamos el ComboBox mágicamente para que aparezca
+                cargarCategoriasCombo();
 
-             // 5. Autoseleccionamos la categoría que acaba de crear para ahorrarle un clic
-             vista.getCbCategoria().setSelectedItem(nuevaCat.trim());
+                // 5. Autoseleccionamos la categoría que acaba de crear para ahorrarle un clic
+                vista.getCbCategoria().setSelectedItem(nuevaCat.trim());
 
-             JOptionPane.showMessageDialog(vista, "Categoría agregada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-         } catch (SQLException ex) {
-             JOptionPane.showMessageDialog(vista, "Error al guardar la categoría:\n" + ex.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
-         }
-     }
- }
+                JOptionPane.showMessageDialog(vista, "Categoría agregada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(vista, "Error al guardar la categoría:\n" + ex.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
     
-    
-    //
     private void filtrarLibros() {
-     String texto = vista.getTxtBuscar().getText().trim();
+        String texto = vista.getTxtBuscar().getText().trim();
 
-     // Si la barra está vacía, volvemos a cargar todos los libros normales
-     if (texto.isEmpty()) {
-         try {
-             DefaultTableModel modelo = vista.getModeloTabla();
-             modelo.setRowCount(0);
-             List<Libro> lista = libroDao.obtenerTodos(); 
-             for (Libro l : lista) {
-                 modelo.addRow(new Object[]{l.getIdLibro(), l.getIsbn(), l.getTitulo(), l.getAutor(), l.getPrecio(), l.getStock(), l.getIdCategoria()});
-             }
-         } catch (SQLException e) {
-             // Failsafe silencioso para tipeo dinámico
-         }
-         return;
-     }
+        // Si la barra está vacía, volvemos a cargar todos los libros normales
+        if (texto.isEmpty()) {
+            try {
+                DefaultTableModel modelo = vista.getModeloTabla();
+                modelo.setRowCount(0);
+                List<Libro> lista = libroDao.obtenerTodos(); 
+                for (Libro l : lista) {
+                    modelo.addRow(new Object[]{l.getIdLibro(), l.getIsbn(), l.getTitulo(), l.getAutor(), l.getPrecio(), l.getStock(), l.getIdCategoria()});
+                }
+            } catch (SQLException e) {
+                // Failsafe silencioso para tipeo dinámico
+            }
+            return;
+        }
 
-     // Si hay texto, llamamos al método universal de búsqueda del DAO
-     try {
-         List<Libro> filtrados = libroDao.buscarLibros(texto);
-         DefaultTableModel modelo = vista.getModeloTabla();
-         modelo.setRowCount(0); // Limpiamos la tabla
+        // Si hay texto, llamamos al método universal de búsqueda del DAO
+        try {
+            List<Libro> filtrados = libroDao.buscarLibros(texto);
+            DefaultTableModel modelo = vista.getModeloTabla();
+            modelo.setRowCount(0); // Limpiamos la tabla
 
-         for (Libro l : filtrados) {
-             modelo.addRow(new Object[]{
-                 l.getIdLibro(), l.getIsbn(), l.getTitulo(), l.getAutor(), l.getPrecio(), l.getStock(), l.getIdCategoria()
-             });
-         }
-     } catch (SQLException ex) {
-         JOptionPane.showMessageDialog(vista, "Error dinámico de búsqueda:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-     }
- }
+            for (Libro l : filtrados) {
+                modelo.addRow(new Object[]{
+                    l.getIdLibro(), l.getIsbn(), l.getTitulo(), l.getAutor(), l.getPrecio(), l.getStock(), l.getIdCategoria()
+                });
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(vista, "Error dinámico de búsqueda:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
     
 }
